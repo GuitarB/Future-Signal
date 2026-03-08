@@ -6,34 +6,52 @@
   <title>Future Signal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="bg-orb orb-1"></div>
   <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
   <div class="grid-overlay"></div>
 
   <main class="app-shell">
     <section class="hero-card">
-      <div class="top-badge">FUTURE SIGNAL / V1</div>
+      <div class="top-row">
+        <div class="top-badge">FUTURE SIGNAL / V2</div>
+        <div class="live-dot-wrap">
+          <span class="live-dot"></span>
+          <span>LIVE ENGINE</span>
+        </div>
+      </div>
 
       <h1>Ask the future<br><span>something bold.</span></h1>
 
       <p class="hero-text">
-        Explore possible outcomes, hidden opportunities, and dramatic next moves through a futuristic signal interface.
+        Explore possible outcomes, hidden opportunities, risk patterns, and strategic next moves through a cinematic signal interface.
       </p>
 
       <div class="prompt-bar">
         <span id="rotatingPrompt">What happens if I start a business this year?</span>
       </div>
 
+      <div class="chip-row">
+        <button class="chip" data-prompt="What happens if I build a digital brand in the next 6 months?">Digital Brand</button>
+        <button class="chip" data-prompt="What if I reinvent my life in the next 90 days?">Reinvent Life</button>
+        <button class="chip" data-prompt="What happens if I turn one strong idea into a product this month?">Launch Product</button>
+        <button class="chip" data-prompt="What if AI transforms my industry faster than expected?">AI Shift</button>
+      </div>
+
       <div class="input-wrap">
         <textarea
           id="questionInput"
-          placeholder="Type your question here... Example: What happens if I reinvent my life in the next 90 days?"
+          placeholder="Type your question here... Example: What happens if I go all in on one idea for the next 6 months?"
         ></textarea>
-        <button id="analyzeBtn">Analyze Signal</button>
+
+        <div class="button-row">
+          <button id="analyzeBtn" class="main-btn">Analyze Signal</button>
+          <button id="clearBtn" class="ghost-btn">Clear</button>
+        </div>
       </div>
     </section>
 
@@ -46,8 +64,14 @@
         <div class="status-pill" id="statusPill">IDLE</div>
       </div>
 
+      <div class="scan-status" id="scanStatus">System standing by.</div>
+
       <div class="signal-meter">
         <div class="signal-fill" id="signalFill"></div>
+      </div>
+
+      <div class="action-row">
+        <button id="copyBtn" class="secondary-btn">Copy Result</button>
       </div>
 
       <div class="result-grid">
@@ -78,6 +102,34 @@
             Your most strategic immediate move will appear here.
           </p>
         </article>
+      </div>
+    </section>
+
+    <section class="history-card">
+      <div class="history-header">
+        <div>
+          <div class="result-label">SIGNAL HISTORY</div>
+          <h2>Recent transmissions</h2>
+        </div>
+        <button id="clearHistoryBtn" class="ghost-btn small-btn">Clear History</button>
+      </div>
+
+      <div id="historyList" class="history-list">
+        <div class="history-empty">No saved signals yet. Run an analysis to start building your timeline.</div>
+      </div>
+    </section>
+
+    <section class="premium-card">
+      <div class="premium-label">NEXT PHASE</div>
+      <h2>Future Signal Plus</h2>
+      <p>
+        Premium signals could include deeper scenario breakdowns, downloadable reports, custom strategy paths, and AI-powered future sessions.
+      </p>
+      <div class="premium-grid">
+        <div class="premium-item">Deeper forecasts</div>
+        <div class="premium-item">Saved reports</div>
+        <div class="premium-item">Custom themes</div>
+        <div class="premium-item">Shareable signal cards</div>
       </div>
     </section>
   </main>
