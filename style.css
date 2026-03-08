@@ -237,7 +237,8 @@ textarea::placeholder {
 }
 
 .button-row,
-.action-row {
+.action-row,
+.card-preview-actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
@@ -441,6 +442,18 @@ button:active,
   border-radius: 18px;
   border: 1px solid rgba(255,255,255,0.08);
   background: #0b1026;
+}
+
+.card-preview-actions {
+  margin-top: 16px;
+}
+
+.card-preview-actions .secondary-btn,
+.card-preview-actions .download-btn {
+  flex: 1 1 180px;
+  justify-content: center;
+  display: inline-flex;
+  align-items: center;
 }
 
 .site-footer {
