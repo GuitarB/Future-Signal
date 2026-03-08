@@ -145,7 +145,6 @@ async function runAnalysis() {
       strength,
       time: new Date().toLocaleString()
     });
-
   } catch (error) {
     statusPill.textContent = "ERROR";
     scanStatus.textContent = "Engine connection failed.";
@@ -181,7 +180,18 @@ Next Move:
 ${nextMoveText.textContent}
 `;
 
-  await navigator.clipboard.writeText(text);
+  try {
+    await navigator.clipboard.writeText(text);
+    copyBtn.textContent = "Copied";
+    setTimeout(() => {
+      copyBtn.textContent = "Copy Result";
+    }, 1200);
+  } catch (error) {
+    copyBtn.textContent = "Copy Failed";
+    setTimeout(() => {
+      copyBtn.textContent = "Copy Result";
+    }, 1200);
+  }
 });
 
 clearHistoryBtn.addEventListener("click", () => {
@@ -189,65 +199,207 @@ clearHistoryBtn.addEventListener("click", () => {
   renderHistory();
 });
 
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(" ");
+function roundRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function fillRoundRect(ctx, x, y, width, height, radius, fillStyle) {
+  ctx.save();
+  roundRect(ctx, x, y, width, height, radius);
+  ctx.fillStyle = fillStyle;
+  ctx.fill();
+  ctx.restore();
+}
+
+function strokeRoundRect(ctx, x, y, width, height, radius, strokeStyle, lineWidth = 2) {
+  ctx.save();
+  roundRect(ctx, x, y, width, height, radius);
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = lineWidth;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 100) {
+  const words = String(text).split(" ");
   let line = "";
+  const lines = [];
 
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + " ";
-    const metrics = ctx.measureText(testLine);
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + " ";
+    const width = ctx.measureText(testLine).width;
 
-    if (metrics.width > maxWidth && n > 0) {
-      ctx.fillText(line, x, y);
-      line = words[n] + " ";
-      y += lineHeight;
+    if (width > maxWidth && i > 0) {
+      lines.push(line.trim());
+      line = words[i] + " ";
+      if (lines.length >= maxLines - 1) {
+        break;
+      }
     } else {
       line = testLine;
     }
   }
 
-  ctx.fillText(line, x, y);
-  return y;
+  if (line.trim() && lines.length < maxLines) {
+    lines.push(line.trim());
+  }
+
+  lines.forEach((lineText, index) => {
+    ctx.fillText(lineText, x, y + index * lineHeight);
+  });
+
+  return y + (lines.length * lineHeight);
+}
+
+function drawCardBackground(ctx, canvas) {
+  const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  bgGradient.addColorStop(0, "#060c22");
+  bgGradient.addColorStop(1, "#09142d");
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const orb1 = ctx.createRadialGradient(220, 180, 20, 220, 180, 360);
+  orb1.addColorStop(0, "rgba(124,92,255,0.32)");
+  orb1.addColorStop(1, "rgba(124,92,255,0)");
+  ctx.fillStyle = orb1;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const orb2 = ctx.createRadialGradient(980, 1100, 20, 980, 1100, 420);
+  orb2.addColorStop(0, "rgba(34,211,238,0.20)");
+  orb2.addColorStop(1, "rgba(34,211,238,0)");
+  ctx.fillStyle = orb2;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,0.04)";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x <= canvas.width; x += 64) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y <= canvas.height; y += 64) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+
+  ctx.restore();
 }
 
 function generateSignalCard() {
-  const title = resultTitle.textContent;
-  const question = questionInput.value;
-  const forecast = forecastText.textContent;
-  const strength = parseInt(signalFill.style.width) || 70;
+  const title = resultTitle.textContent.trim();
+  const question = questionInput.value.trim() || "Signal question unavailable";
+  const forecast = forecastText.textContent.trim();
+  const strength = Math.max(18, Math.min(96, parseInt(signalFill.style.width, 10) || 72));
 
   if (statusPill.textContent !== "ACTIVE") {
     cardBtn.textContent = "Run Signal First";
-    setTimeout(() => (cardBtn.textContent = "Generate Signal Card"), 1200);
+    setTimeout(() => {
+      cardBtn.textContent = "Generate Signal Card";
+    }, 1200);
     return;
   }
 
   const canvas = signalCardCanvas;
   const ctx = canvas.getContext("2d");
+  const width = canvas.width;
+  const height = canvas.height;
 
-  ctx.fillStyle = "#0b1026";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, width, height);
+  drawCardBackground(ctx, canvas);
 
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 70px Inter";
-  wrapText(ctx, title, 80, 200, canvas.width - 160, 80);
+  fillRoundRect(ctx, 48, 48, width - 96, height - 96, 36, "rgba(255,255,255,0.06)");
+  strokeRoundRect(ctx, 48, 48, width - 96, height - 96, 36, "rgba(255,255,255,0.10)", 2);
 
-  ctx.font = "36px Inter";
-  ctx.fillStyle = "#aab4d6";
-  wrapText(ctx, question, 80, 360, canvas.width - 160, 50);
+  fillRoundRect(ctx, 92, 92, 310, 64, 32, "rgba(124,92,255,0.15)");
+  strokeRoundRect(ctx, 92, 92, 310, 64, 32, "rgba(124,92,255,0.42)", 2);
 
-  ctx.font = "42px Inter";
-  ctx.fillStyle = "#ffffff";
-  wrapText(ctx, forecast, 80, 600, canvas.width - 160, 60);
+  ctx.fillStyle = "#d9d0ff";
+  ctx.font = "700 28px Inter, Arial, sans-serif";
+  ctx.fillText("FUTURE SIGNAL", 128, 132);
 
-  ctx.fillStyle = "#7c5cff";
-  ctx.fillRect(80, canvas.height - 200, (canvas.width - 160) * (strength / 100), 30);
+  fillRoundRect(ctx, 930, 92, 170, 64, 32, "rgba(48,242,163,0.14)");
+  strokeRoundRect(ctx, 930, 92, 170, 64, 32, "rgba(48,242,163,0.34)", 2);
+
+  ctx.fillStyle = "#b8ffe0";
+  ctx.font = "800 26px Inter, Arial, sans-serif";
+  ctx.fillText("ACTIVE", 978, 132);
+
+  ctx.fillStyle = "#f1f5ff";
+  ctx.font = "800 74px Inter, Arial, sans-serif";
+  let y = drawWrappedText(ctx, title, 92, 255, width - 184, 84, 3);
+
+  y += 24;
+  ctx.fillStyle = "#9fb0d9";
+  ctx.font = "700 22px Inter, Arial, sans-serif";
+  ctx.fillText("QUESTION", 92, y);
+
+  y += 36;
+  ctx.fillStyle = "#d5ddf7";
+  ctx.font = "500 30px Inter, Arial, sans-serif";
+  y = drawWrappedText(ctx, question, 92, y, width - 184, 42, 3);
+
+  y += 34;
+  fillRoundRect(ctx, 92, y, width - 184, 560, 28, "rgba(8,16,42,0.72)");
+  strokeRoundRect(ctx, 92, y, width - 184, 560, 28, "rgba(255,255,255,0.08)", 2);
+
+  ctx.fillStyle = "#f0f4ff";
+  ctx.font = "800 38px Inter, Arial, sans-serif";
+  ctx.fillText("Primary Forecast", 132, y + 66);
+
+  ctx.fillStyle = "#d6def8";
+  ctx.font = "500 24px Inter, Arial, sans-serif";
+  drawWrappedText(ctx, forecast, 132, y + 130, width - 264, 38, 9);
+
+  const meterY = height - 190;
+
+  ctx.fillStyle = "#99a8d7";
+  ctx.font = "700 22px Inter, Arial, sans-serif";
+  ctx.fillText("SIGNAL STRENGTH", 92, meterY);
+
+  fillRoundRect(ctx, 92, meterY + 28, width - 184, 24, 12, "rgba(255,255,255,0.10)");
+
+  const fillWidth = (width - 184) * (strength / 100);
+  const meterGradient = ctx.createLinearGradient(92, 0, 92 + fillWidth, 0);
+  meterGradient.addColorStop(0, "#7c5cff");
+  meterGradient.addColorStop(0.5, "#22d3ee");
+  meterGradient.addColorStop(1, "#30f2a3");
+  fillRoundRect(ctx, 92, meterY + 28, fillWidth, 24, 12, meterGradient);
+
+  ctx.fillStyle = "#edf3ff";
+  ctx.font = "800 30px Inter, Arial, sans-serif";
+  ctx.fillText(`${strength}%`, width - 182, meterY + 8);
+
+  ctx.fillStyle = "#8fa1cf";
+  ctx.font = "600 22px Inter, Arial, sans-serif";
+  ctx.fillText("future-signal.pages.dev", 92, height - 102);
 
   cardPreviewWrap.classList.remove("hidden");
-
   const dataUrl = canvas.toDataURL("image/png");
   downloadCardBtn.href = dataUrl;
   downloadCardBtn.classList.remove("hidden");
+
+  cardBtn.textContent = "Card Ready";
+  setTimeout(() => {
+    cardBtn.textContent = "Generate Signal Card";
+  }, 1200);
+
+  cardPreviewWrap.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 cardBtn.addEventListener("click", generateSignalCard);
