@@ -40,104 +40,6 @@ chipButtons.forEach((button) => {
   });
 });
 
-function pickTitle(question) {
-  const lowered = question.toLowerCase();
-
-  if (lowered.includes("business") || lowered.includes("money") || lowered.includes("income")) {
-    return "Economic Momentum Detected";
-  }
-
-  if (lowered.includes("life") || lowered.includes("future") || lowered.includes("reinvent")) {
-    return "Identity Shift Signal";
-  }
-
-  if (lowered.includes("ai") || lowered.includes("technology") || lowered.includes("tech")) {
-    return "High-Tech Disruption Window";
-  }
-
-  if (lowered.includes("move") || lowered.includes("city") || lowered.includes("country")) {
-    return "Geographic Transition Forecast";
-  }
-
-  if (lowered.includes("brand") || lowered.includes("audience") || lowered.includes("content")) {
-    return "Attention Wave Forming";
-  }
-
-  return "Emerging Future Pattern";
-}
-
-function buildForecast(question) {
-  const starters = [
-    "Your question points to a period of accelerated change.",
-    "The signal suggests you are standing near a threshold moment.",
-    "This scenario shows strong potential for reinvention and momentum.",
-    "A meaningful shift becomes more likely if you act with consistency."
-  ];
-
-  const endings = [
-    "Small disciplined moves could create a very visible outcome.",
-    "The future here does not look passive; it looks shaped by deliberate action.",
-    "This path appears strongest when curiosity is paired with execution.",
-    "The biggest change may begin quietly before becoming obvious to everyone else."
-  ];
-
-  return `${randomItem(starters)} In this scenario, "${question.trim()}" behaves less like a random thought and more like a live opportunity field. ${randomItem(endings)}`;
-}
-
-function buildOpportunity(question) {
-  const options = [
-    "You may be closer than you think to a breakthrough that other people do not yet see.",
-    "There is leverage in starting before you feel fully ready.",
-    "Momentum could build through visibility, consistency, and a memorable public identity.",
-    "A simple first version may unlock feedback, confidence, and faster iteration.",
-    "Your edge may come from bold presentation rather than technical complexity alone."
-  ];
-
-  return `${randomItem(options)} The opportunity zone around "${question.trim()}" favors decisive movement, visible experimentation, and rapid learning.`;
-}
-
-function buildRisk(question) {
-  const options = [
-    "The main danger is hesitation disguised as preparation.",
-    "Overthinking may drain energy from a strong instinct.",
-    "Perfectionism could slow a concept that actually needs public testing.",
-    "Trying to impress everyone at once may weaken the clarity of the idea.",
-    "Waiting for certainty may cause the timing advantage to disappear."
-  ];
-
-  return `${randomItem(options)} For this signal, risk does not come only from failure. It also comes from delay, distraction, and diluted focus.`;
-}
-
-function buildNextMove(question) {
-  const moves = [
-    "Define the smallest version you can launch fast and make it real.",
-    "Turn the idea into something visible within the next 24 hours.",
-    "Write a clear one-sentence promise for the experience you want people to feel.",
-    "Create a first public-facing prototype instead of staying in planning mode.",
-    "Pick one measurable target and design your next move around it."
-  ];
-
-  return `${randomItem(moves)} For "${question.trim()}", the strongest next step is immediate execution with clean focus.`;
-}
-
-function randomItem(array) {
-  return array[Math.floor(Math.random() * array.length)];
-}
-
-function calculateSignalStrength(question) {
-  const lengthScore = Math.min(question.trim().length * 1.5, 65);
-  const bonusWords = ["future", "business", "money", "ai", "life", "change", "build", "move", "start", "brand", "product"];
-  let bonus = 0;
-
-  bonusWords.forEach((word) => {
-    if (question.toLowerCase().includes(word)) {
-      bonus += 4;
-    }
-  });
-
-  return Math.min(96, Math.max(18, Math.floor(lengthScore + bonus)));
-}
-
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -179,7 +81,7 @@ function renderHistory() {
 }
 
 function escapeHtml(text) {
-  return text
+  return String(text)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -210,47 +112,64 @@ async function runAnalysis() {
   scanStatus.textContent = "Collecting scenario fragments...";
   signalFill.style.width = "20%";
 
-  await delay(500);
+  await delay(350);
   scanStatus.textContent = "Mapping opportunity zones...";
   signalFill.style.width = "42%";
 
-  await delay(650);
+  await delay(450);
   scanStatus.textContent = "Detecting risk patterns...";
   signalFill.style.width = "68%";
 
-  await delay(650);
-  scanStatus.textContent = "Finalizing future readout...";
+  await delay(450);
+  scanStatus.textContent = "Consulting the engine...";
   signalFill.style.width = "84%";
 
-  await delay(500);
+  try {
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ question })
+    });
 
-  const strength = calculateSignalStrength(question);
-  const title = pickTitle(question);
-  const forecast = buildForecast(question);
-  const opportunity = buildOpportunity(question);
-  const risk = buildRisk(question);
-  const nextMove = buildNextMove(question);
+    const data = await response.json();
 
-  resultTitle.textContent = title;
-  forecastText.textContent = forecast;
-  opportunityText.textContent = opportunity;
-  riskText.textContent = risk;
-  nextMoveText.textContent = nextMove;
-  statusPill.textContent = "ACTIVE";
-  scanStatus.textContent = "Transmission complete.";
-  signalFill.style.width = `${strength}%`;
+    if (!response.ok) {
+      throw new Error(data.error || "Analysis failed.");
+    }
 
-  const historyItem = {
-    title,
-    question,
-    strength,
-    time: new Date().toLocaleString()
-  };
+    resultTitle.textContent = data.title || "Signal Acquired";
+    forecastText.textContent = data.forecast || "No forecast returned.";
+    opportunityText.textContent = data.opportunity || "No opportunity signal returned.";
+    riskText.textContent = data.risk || "No risk pattern returned.";
+    nextMoveText.textContent = data.nextMove || "No next move returned.";
 
-  storeHistory(historyItem);
+    const strength = Math.max(18, Math.min(96, Number(data.strength) || 72));
 
-  analyzeBtn.textContent = "Analyze Signal";
-  isAnalyzing = false;
+    statusPill.textContent = "ACTIVE";
+    scanStatus.textContent = "Transmission complete.";
+    signalFill.style.width = `${strength}%`;
+
+    storeHistory({
+      title: resultTitle.textContent,
+      question,
+      strength,
+      time: new Date().toLocaleString()
+    });
+  } catch (error) {
+    resultTitle.textContent = "Transmission Error";
+    forecastText.textContent = "The AI engine did not return a usable result.";
+    opportunityText.textContent = "Check that your Cloudflare secret is set and your OpenAI API billing is active.";
+    riskText.textContent = error.message;
+    nextMoveText.textContent = "Fix the configuration, redeploy, and try again.";
+    statusPill.textContent = "ERROR";
+    scanStatus.textContent = "Engine connection failed.";
+    signalFill.style.width = "12%";
+  } finally {
+    analyzeBtn.textContent = "Analyze Signal";
+    isAnalyzing = false;
+  }
 }
 
 analyzeBtn.addEventListener("click", runAnalysis);
