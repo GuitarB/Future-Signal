@@ -4,6 +4,7 @@ const analyzeBtn = document.getElementById("analyzeBtn");
 const clearBtn = document.getElementById("clearBtn");
 const copyBtn = document.getElementById("copyBtn");
 const cardBtn = document.getElementById("cardBtn");
+const shareCardBtn = document.getElementById("shareCardBtn");
 const downloadCardBtn = document.getElementById("downloadCardBtn");
 const cardPreviewWrap = document.getElementById("cardPreviewWrap");
 const signalCardCanvas = document.getElementById("signalCardCanvas");
@@ -44,10 +45,6 @@ chipButtons.forEach((button) => {
   });
 });
 
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function setIdleState() {
   resultTitle.textContent = "Awaiting transmission...";
   forecastText.textContent = "Enter a question to generate a speculative future readout.";
@@ -57,6 +54,8 @@ function setIdleState() {
   statusPill.textContent = "IDLE";
   scanStatus.textContent = "System standing by.";
   signalFill.style.width = "8%";
+  cardPreviewWrap.classList.add("hidden");
+  downloadCardBtn.removeAttribute("href");
 }
 
 function storeHistory(item) {
@@ -106,6 +105,8 @@ async function runAnalysis() {
   }
 
   isAnalyzing = true;
+  cardPreviewWrap.classList.add("hidden");
+  downloadCardBtn.removeAttribute("href");
 
   analyzeBtn.textContent = "Analyzing...";
   statusPill.textContent = "SCANNING";
@@ -392,7 +393,6 @@ function generateSignalCard() {
   cardPreviewWrap.classList.remove("hidden");
   const dataUrl = canvas.toDataURL("image/png");
   downloadCardBtn.href = dataUrl;
-  downloadCardBtn.classList.remove("hidden");
 
   cardBtn.textContent = "Card Ready";
   setTimeout(() => {
@@ -402,7 +402,60 @@ function generateSignalCard() {
   cardPreviewWrap.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+async function shareSignalCard() {
+  if (statusPill.textContent !== "ACTIVE") {
+    shareCardBtn.textContent = "Run Signal First";
+    setTimeout(() => {
+      shareCardBtn.textContent = "Share Card";
+    }, 1200);
+    return;
+  }
+
+  if (!downloadCardBtn.href) {
+    generateSignalCard();
+  }
+
+  try {
+    const canvas = signalCardCanvas;
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, "image/png");
+    });
+
+    if (!blob) {
+      throw new Error("Card image could not be created.");
+    }
+
+    const file = new File([blob], "future-signal-card.png", { type: "image/png" });
+    const shareData = {
+      title: resultTitle.textContent.trim(),
+      text: `Future Signal: ${resultTitle.textContent.trim()}`,
+      files: [file]
+    };
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share(shareData);
+      return;
+    }
+
+    if (downloadCardBtn.href) {
+      shareCardBtn.textContent = "Use Download Below";
+      setTimeout(() => {
+        shareCardBtn.textContent = "Share Card";
+      }, 1600);
+      return;
+    }
+
+    throw new Error("Sharing not supported on this device.");
+  } catch (error) {
+    shareCardBtn.textContent = "Share Unavailable";
+    setTimeout(() => {
+      shareCardBtn.textContent = "Share Card";
+    }, 1600);
+  }
+}
+
 cardBtn.addEventListener("click", generateSignalCard);
+shareCardBtn.addEventListener("click", shareSignalCard);
 
 renderHistory();
 setIdleState();
