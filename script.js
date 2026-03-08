@@ -3,6 +3,10 @@ const questionInput = document.getElementById("questionInput");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const clearBtn = document.getElementById("clearBtn");
 const copyBtn = document.getElementById("copyBtn");
+const cardBtn = document.getElementById("cardBtn");
+const downloadCardBtn = document.getElementById("downloadCardBtn");
+const cardPreviewWrap = document.getElementById("cardPreviewWrap");
+const signalCardCanvas = document.getElementById("signalCardCanvas");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 const chipButtons = document.querySelectorAll(".chip");
 
@@ -47,9 +51,9 @@ function delay(ms) {
 function setIdleState() {
   resultTitle.textContent = "Awaiting transmission...";
   forecastText.textContent = "Enter a question to generate a speculative future readout.";
-  opportunityText.textContent = "Hidden upside, leverage points, and momentum signals will appear here.";
-  riskText.textContent = "Friction, instability, and caution signals will appear here.";
-  nextMoveText.textContent = "Your most strategic immediate move will appear here.";
+  opportunityText.textContent = "Hidden upside will appear here.";
+  riskText.textContent = "Risk patterns will appear here.";
+  nextMoveText.textContent = "Strategic next move will appear here.";
   statusPill.textContent = "IDLE";
   scanStatus.textContent = "System standing by.";
   signalFill.style.width = "8%";
@@ -67,62 +71,46 @@ function renderHistory() {
   const items = JSON.parse(localStorage.getItem("futureSignalHistory") || "[]");
 
   if (!items.length) {
-    historyList.innerHTML = `<div class="history-empty">No saved signals yet. Run an analysis to start building your timeline.</div>`;
+    historyList.innerHTML =
+      `<div class="history-empty">No saved signals yet. Run an analysis.</div>`;
     return;
   }
 
-  historyList.innerHTML = items.map((item) => `
+  historyList.innerHTML = items
+    .map(
+      (item) => `
     <div class="history-item">
       <div class="history-item-title">${escapeHtml(item.title)}</div>
       <p class="history-item-question">${escapeHtml(item.question)}</p>
-      <div class="history-item-meta">Signal strength: ${item.strength}% · ${escapeHtml(item.time)}</div>
+      <div class="history-item-meta">
+        Signal strength: ${item.strength}% · ${escapeHtml(item.time)}
+      </div>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 }
 
 function escapeHtml(text) {
   return String(text)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll(">", "&gt;");
 }
 
 async function runAnalysis() {
   const question = questionInput.value.trim();
 
   if (!question || isAnalyzing) {
-    if (!question) {
-      resultTitle.textContent = "No signal detected";
-      forecastText.textContent = "Type a real question first so the interface has something to analyze.";
-      opportunityText.textContent = "Questions with emotional energy, ambition, or uncertainty generate the strongest outputs.";
-      riskText.textContent = "A blank input creates no meaningful signal.";
-      nextMoveText.textContent = "Enter a bold question and run the analysis again.";
-      statusPill.textContent = "EMPTY";
-      scanStatus.textContent = "Signal channel is empty.";
-      signalFill.style.width = "8%";
-    }
     return;
   }
 
   isAnalyzing = true;
+
   analyzeBtn.textContent = "Analyzing...";
   statusPill.textContent = "SCANNING";
-  scanStatus.textContent = "Collecting scenario fragments...";
-  signalFill.style.width = "20%";
-
-  await delay(350);
-  scanStatus.textContent = "Mapping opportunity zones...";
-  signalFill.style.width = "42%";
-
-  await delay(450);
-  scanStatus.textContent = "Detecting risk patterns...";
-  signalFill.style.width = "68%";
-
-  await delay(450);
-  scanStatus.textContent = "Consulting the engine...";
-  signalFill.style.width = "84%";
+  scanStatus.textContent = "Consulting the signal engine...";
+  signalFill.style.width = "30%";
 
   try {
     const response = await fetch("/api/analyze", {
@@ -136,14 +124,14 @@ async function runAnalysis() {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Analysis failed.");
+      throw new Error("AI request failed.");
     }
 
-    resultTitle.textContent = data.title || "Signal Acquired";
-    forecastText.textContent = data.forecast || "No forecast returned.";
-    opportunityText.textContent = data.opportunity || "No opportunity signal returned.";
-    riskText.textContent = data.risk || "No risk pattern returned.";
-    nextMoveText.textContent = data.nextMove || "No next move returned.";
+    resultTitle.textContent = data.title;
+    forecastText.textContent = data.forecast;
+    opportunityText.textContent = data.opportunity;
+    riskText.textContent = data.risk;
+    nextMoveText.textContent = data.nextMove;
 
     const strength = Math.max(18, Math.min(96, Number(data.strength) || 72));
 
@@ -152,20 +140,15 @@ async function runAnalysis() {
     signalFill.style.width = `${strength}%`;
 
     storeHistory({
-      title: resultTitle.textContent,
+      title: data.title,
       question,
       strength,
       time: new Date().toLocaleString()
     });
+
   } catch (error) {
-    resultTitle.textContent = "Transmission Error";
-    forecastText.textContent = "The AI engine did not return a usable result.";
-    opportunityText.textContent = "Check that your Cloudflare secret is set and your OpenAI API billing is active.";
-    riskText.textContent = error.message;
-    nextMoveText.textContent = "Fix the configuration, redeploy, and try again.";
     statusPill.textContent = "ERROR";
     scanStatus.textContent = "Engine connection failed.";
-    signalFill.style.width = "12%";
   } finally {
     analyzeBtn.textContent = "Analyze Signal";
     isAnalyzing = false;
@@ -180,38 +163,94 @@ clearBtn.addEventListener("click", () => {
 });
 
 copyBtn.addEventListener("click", async () => {
-  const text = [
-    `Future Signal`,
-    `Title: ${resultTitle.textContent}`,
-    `Status: ${statusPill.textContent}`,
-    ``,
-    `Primary Forecast: ${forecastText.textContent}`,
-    ``,
-    `Opportunity Zone: ${opportunityText.textContent}`,
-    ``,
-    `Risk Pattern: ${riskText.textContent}`,
-    ``,
-    `Next Move: ${nextMoveText.textContent}`
-  ].join("\n");
+  const text = `
+Future Signal
 
-  try {
-    await navigator.clipboard.writeText(text);
-    copyBtn.textContent = "Copied";
-    setTimeout(() => {
-      copyBtn.textContent = "Copy Result";
-    }, 1400);
-  } catch (error) {
-    copyBtn.textContent = "Copy Failed";
-    setTimeout(() => {
-      copyBtn.textContent = "Copy Result";
-    }, 1400);
-  }
+${resultTitle.textContent}
+
+Forecast:
+${forecastText.textContent}
+
+Opportunity:
+${opportunityText.textContent}
+
+Risk:
+${riskText.textContent}
+
+Next Move:
+${nextMoveText.textContent}
+`;
+
+  await navigator.clipboard.writeText(text);
 });
 
 clearHistoryBtn.addEventListener("click", () => {
   localStorage.removeItem("futureSignalHistory");
   renderHistory();
 });
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(" ");
+  let line = "";
+
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + " ";
+    const metrics = ctx.measureText(testLine);
+
+    if (metrics.width > maxWidth && n > 0) {
+      ctx.fillText(line, x, y);
+      line = words[n] + " ";
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+
+  ctx.fillText(line, x, y);
+  return y;
+}
+
+function generateSignalCard() {
+  const title = resultTitle.textContent;
+  const question = questionInput.value;
+  const forecast = forecastText.textContent;
+  const strength = parseInt(signalFill.style.width) || 70;
+
+  if (statusPill.textContent !== "ACTIVE") {
+    cardBtn.textContent = "Run Signal First";
+    setTimeout(() => (cardBtn.textContent = "Generate Signal Card"), 1200);
+    return;
+  }
+
+  const canvas = signalCardCanvas;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#0b1026";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 70px Inter";
+  wrapText(ctx, title, 80, 200, canvas.width - 160, 80);
+
+  ctx.font = "36px Inter";
+  ctx.fillStyle = "#aab4d6";
+  wrapText(ctx, question, 80, 360, canvas.width - 160, 50);
+
+  ctx.font = "42px Inter";
+  ctx.fillStyle = "#ffffff";
+  wrapText(ctx, forecast, 80, 600, canvas.width - 160, 60);
+
+  ctx.fillStyle = "#7c5cff";
+  ctx.fillRect(80, canvas.height - 200, (canvas.width - 160) * (strength / 100), 30);
+
+  cardPreviewWrap.classList.remove("hidden");
+
+  const dataUrl = canvas.toDataURL("image/png");
+  downloadCardBtn.href = dataUrl;
+  downloadCardBtn.classList.remove("hidden");
+}
+
+cardBtn.addEventListener("click", generateSignalCard);
 
 renderHistory();
 setIdleState();
