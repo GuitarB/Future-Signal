@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Future Signal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="grid-overlay"></div>
+
+  <main class="app-shell">
+    <section class="hero-card">
+      <div class="top-badge">FUTURE SIGNAL / V1</div>
+
+      <h1>Ask the future<br><span>something bold.</span></h1>
+
+      <p class="hero-text">
+        Explore possible outcomes, hidden opportunities, and dramatic next moves through a futuristic signal interface.
+      </p>
+
+      <div class="prompt-bar">
+        <span id="rotatingPrompt">What happens if I start a business this year?</span>
+      </div>
+
+      <div class="input-wrap">
+        <textarea
+          id="questionInput"
+          placeholder="Type your question here... Example: What happens if I reinvent my life in the next 90 days?"
+        ></textarea>
+        <button id="analyzeBtn">Analyze Signal</button>
+      </div>
+    </section>
+
+    <section class="result-card" id="resultCard">
+      <div class="result-header">
+        <div>
+          <div class="result-label">SIGNAL OUTPUT</div>
+          <h2 id="resultTitle">Awaiting transmission...</h2>
+        </div>
+        <div class="status-pill" id="statusPill">IDLE</div>
+      </div>
+
+      <div class="signal-meter">
+        <div class="signal-fill" id="signalFill"></div>
+      </div>
+
+      <div class="result-grid">
+        <article class="panel">
+          <h3>Primary Forecast</h3>
+          <p id="forecastText">
+            Enter a question to generate a speculative future readout.
+          </p>
+        </article>
+
+        <article class="panel">
+          <h3>Opportunity Zone</h3>
+          <p id="opportunityText">
+            Hidden upside, leverage points, and momentum signals will appear here.
+          </p>
+        </article>
+
+        <article class="panel">
+          <h3>Risk Pattern</h3>
+          <p id="riskText">
+            Friction, instability, and caution signals will appear here.
+          </p>
+        </article>
+
+        <article class="panel">
+          <h3>Next Move</h3>
+          <p id="nextMoveText">
+            Your most strategic immediate move will appear here.
+          </p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Future Signal</span>
+    <span>Futuristic scenario engine</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
