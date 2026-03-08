@@ -73,7 +73,6 @@
       <div class="action-row">
         <button id="copyBtn" class="secondary-btn">Copy Result</button>
         <button id="cardBtn" class="secondary-btn">Generate Signal Card</button>
-        <a id="downloadCardBtn" class="secondary-btn download-btn hidden" download="future-signal-card.png">Download Card</a>
       </div>
 
       <div class="result-grid">
@@ -109,6 +108,11 @@
       <div id="cardPreviewWrap" class="card-preview-wrap hidden">
         <div class="result-label">SHAREABLE SIGNAL CARD</div>
         <canvas id="signalCardCanvas" width="1200" height="1500"></canvas>
+
+        <div class="card-preview-actions">
+          <button id="shareCardBtn" class="secondary-btn">Share Card</button>
+          <a id="downloadCardBtn" class="secondary-btn download-btn" download="future-signal-card.png">Download Card</a>
+        </div>
       </div>
     </section>
 
