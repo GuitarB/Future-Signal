@@ -1,6 +1,10 @@
 const rotatingPrompt = document.getElementById("rotatingPrompt");
 const questionInput = document.getElementById("questionInput");
 const analyzeBtn = document.getElementById("analyzeBtn");
+const clearBtn = document.getElementById("clearBtn");
+const copyBtn = document.getElementById("copyBtn");
+const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+const chipButtons = document.querySelectorAll(".chip");
 
 const resultTitle = document.getElementById("resultTitle");
 const forecastText = document.getElementById("forecastText");
@@ -9,6 +13,8 @@ const riskText = document.getElementById("riskText");
 const nextMoveText = document.getElementById("nextMoveText");
 const statusPill = document.getElementById("statusPill");
 const signalFill = document.getElementById("signalFill");
+const scanStatus = document.getElementById("scanStatus");
+const historyList = document.getElementById("historyList");
 
 const prompts = [
   "What happens if I start a business this year?",
@@ -20,11 +26,19 @@ const prompts = [
 ];
 
 let promptIndex = 0;
+let isAnalyzing = false;
 
 setInterval(() => {
   promptIndex = (promptIndex + 1) % prompts.length;
   rotatingPrompt.textContent = prompts[promptIndex];
 }, 3000);
+
+chipButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    questionInput.value = button.dataset.prompt;
+    questionInput.focus();
+  });
+});
 
 function pickTitle(question) {
   const lowered = question.toLowerCase();
@@ -43,6 +57,10 @@ function pickTitle(question) {
 
   if (lowered.includes("move") || lowered.includes("city") || lowered.includes("country")) {
     return "Geographic Transition Forecast";
+  }
+
+  if (lowered.includes("brand") || lowered.includes("audience") || lowered.includes("content")) {
+    return "Attention Wave Forming";
   }
 
   return "Emerging Future Pattern";
@@ -108,7 +126,7 @@ function randomItem(array) {
 
 function calculateSignalStrength(question) {
   const lengthScore = Math.min(question.trim().length * 1.5, 65);
-  const bonusWords = ["future", "business", "money", "ai", "life", "change", "build", "move", "start"];
+  const bonusWords = ["future", "business", "money", "ai", "life", "change", "build", "move", "start", "brand", "product"];
   let bonus = 0;
 
   bonusWords.forEach((word) => {
@@ -120,27 +138,161 @@ function calculateSignalStrength(question) {
   return Math.min(96, Math.max(18, Math.floor(lengthScore + bonus)));
 }
 
-analyzeBtn.addEventListener("click", () => {
-  const question = questionInput.value.trim();
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  if (!question) {
-    resultTitle.textContent = "No signal detected";
-    forecastText.textContent = "Type a real question first so the interface has something to analyze.";
-    opportunityText.textContent = "Questions with emotional energy, ambition, or uncertainty generate the strongest outputs.";
-    riskText.textContent = "A blank input creates no meaningful signal.";
-    nextMoveText.textContent = "Enter a bold question and run the analysis again.";
-    statusPill.textContent = "EMPTY";
-    signalFill.style.width = "8%";
+function setIdleState() {
+  resultTitle.textContent = "Awaiting transmission...";
+  forecastText.textContent = "Enter a question to generate a speculative future readout.";
+  opportunityText.textContent = "Hidden upside, leverage points, and momentum signals will appear here.";
+  riskText.textContent = "Friction, instability, and caution signals will appear here.";
+  nextMoveText.textContent = "Your most strategic immediate move will appear here.";
+  statusPill.textContent = "IDLE";
+  scanStatus.textContent = "System standing by.";
+  signalFill.style.width = "8%";
+}
+
+function storeHistory(item) {
+  const existing = JSON.parse(localStorage.getItem("futureSignalHistory") || "[]");
+  existing.unshift(item);
+  const trimmed = existing.slice(0, 6);
+  localStorage.setItem("futureSignalHistory", JSON.stringify(trimmed));
+  renderHistory();
+}
+
+function renderHistory() {
+  const items = JSON.parse(localStorage.getItem("futureSignalHistory") || "[]");
+
+  if (!items.length) {
+    historyList.innerHTML = `<div class="history-empty">No saved signals yet. Run an analysis to start building your timeline.</div>`;
     return;
   }
 
-  const strength = calculateSignalStrength(question);
+  historyList.innerHTML = items.map((item) => `
+    <div class="history-item">
+      <div class="history-item-title">${escapeHtml(item.title)}</div>
+      <p class="history-item-question">${escapeHtml(item.question)}</p>
+      <div class="history-item-meta">Signal strength: ${item.strength}% · ${escapeHtml(item.time)}</div>
+    </div>
+  `).join("");
+}
 
+function escapeHtml(text) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+async function runAnalysis() {
+  const question = questionInput.value.trim();
+
+  if (!question || isAnalyzing) {
+    if (!question) {
+      resultTitle.textContent = "No signal detected";
+      forecastText.textContent = "Type a real question first so the interface has something to analyze.";
+      opportunityText.textContent = "Questions with emotional energy, ambition, or uncertainty generate the strongest outputs.";
+      riskText.textContent = "A blank input creates no meaningful signal.";
+      nextMoveText.textContent = "Enter a bold question and run the analysis again.";
+      statusPill.textContent = "EMPTY";
+      scanStatus.textContent = "Signal channel is empty.";
+      signalFill.style.width = "8%";
+    }
+    return;
+  }
+
+  isAnalyzing = true;
+  analyzeBtn.textContent = "Analyzing...";
+  statusPill.textContent = "SCANNING";
+  scanStatus.textContent = "Collecting scenario fragments...";
+  signalFill.style.width = "20%";
+
+  await delay(500);
+  scanStatus.textContent = "Mapping opportunity zones...";
+  signalFill.style.width = "42%";
+
+  await delay(650);
+  scanStatus.textContent = "Detecting risk patterns...";
+  signalFill.style.width = "68%";
+
+  await delay(650);
+  scanStatus.textContent = "Finalizing future readout...";
+  signalFill.style.width = "84%";
+
+  await delay(500);
+
+  const strength = calculateSignalStrength(question);
+  const title = pickTitle(question);
+  const forecast = buildForecast(question);
+  const opportunity = buildOpportunity(question);
+  const risk = buildRisk(question);
+  const nextMove = buildNextMove(question);
+
+  resultTitle.textContent = title;
+  forecastText.textContent = forecast;
+  opportunityText.textContent = opportunity;
+  riskText.textContent = risk;
+  nextMoveText.textContent = nextMove;
   statusPill.textContent = "ACTIVE";
-  resultTitle.textContent = pickTitle(question);
-  forecastText.textContent = buildForecast(question);
-  opportunityText.textContent = buildOpportunity(question);
-  riskText.textContent = buildRisk(question);
-  nextMoveText.textContent = buildNextMove(question);
+  scanStatus.textContent = "Transmission complete.";
   signalFill.style.width = `${strength}%`;
+
+  const historyItem = {
+    title,
+    question,
+    strength,
+    time: new Date().toLocaleString()
+  };
+
+  storeHistory(historyItem);
+
+  analyzeBtn.textContent = "Analyze Signal";
+  isAnalyzing = false;
+}
+
+analyzeBtn.addEventListener("click", runAnalysis);
+
+clearBtn.addEventListener("click", () => {
+  questionInput.value = "";
+  setIdleState();
 });
+
+copyBtn.addEventListener("click", async () => {
+  const text = [
+    `Future Signal`,
+    `Title: ${resultTitle.textContent}`,
+    `Status: ${statusPill.textContent}`,
+    ``,
+    `Primary Forecast: ${forecastText.textContent}`,
+    ``,
+    `Opportunity Zone: ${opportunityText.textContent}`,
+    ``,
+    `Risk Pattern: ${riskText.textContent}`,
+    ``,
+    `Next Move: ${nextMoveText.textContent}`
+  ].join("\n");
+
+  try {
+    await navigator.clipboard.writeText(text);
+    copyBtn.textContent = "Copied";
+    setTimeout(() => {
+      copyBtn.textContent = "Copy Result";
+    }, 1400);
+  } catch (error) {
+    copyBtn.textContent = "Copy Failed";
+    setTimeout(() => {
+      copyBtn.textContent = "Copy Result";
+    }, 1400);
+  }
+});
+
+clearHistoryBtn.addEventListener("click", () => {
+  localStorage.removeItem("futureSignalHistory");
+  renderHistory();
+});
+
+renderHistory();
+setIdleState();
