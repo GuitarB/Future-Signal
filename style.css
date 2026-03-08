@@ -181,15 +181,16 @@ h1 span {
 }
 
 .chip-row {
-  display: flex;
-  gap: 10px;
   overflow-x: auto;
-  padding-bottom: 6px;
-  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
 }
 
-.chip-row::-webkit-scrollbar {
-  display: none;
+.app-shell,
+.hero-card,
+.result-card,
+.history-card,
+.premium-card {
+  max-width: 100%;
 }
 
 .chip {
