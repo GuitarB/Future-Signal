@@ -9,6 +9,10 @@ const cardBtn = document.getElementById("cardBtn");
 const shareCardBtn = document.getElementById("shareCardBtn");
 const downloadCardBtn = document.getElementById("downloadCardBtn");
 const upgradeBtn = document.getElementById("upgradeBtn");
+const bannerUpgradeBtn = document.getElementById("bannerUpgradeBtn");
+const premiumBanner = document.getElementById("premiumBanner");
+const premiumBannerEyebrow = document.getElementById("premiumBannerEyebrow");
+const premiumBannerTitle = document.getElementById("premiumBannerTitle");
 const modalUpgradeBtn = document.getElementById("modalUpgradeBtn");
 const closeModalBtn = document.getElementById("closeModalBtn");
 const limitModal = document.getElementById("limitModal");
@@ -130,11 +134,29 @@ function setPremiumUser(enabled = true) {
   localStorage.setItem("future_signal_premium", enabled ? "true" : "false");
 }
 
-function updatePremiumUI() {
+function updatePremiumBanner() {
   if (isPremiumUser()) {
+    premiumBanner.classList.add("is-active");
+    premiumBannerEyebrow.textContent = "⭐ FUTURE SIGNAL PLUS ACTIVE";
+    premiumBannerTitle.textContent = "Unlimited signals unlocked on this device.";
+    bannerUpgradeBtn.textContent = "Premium Active";
+    bannerUpgradeBtn.disabled = true;
+  } else {
+    premiumBanner.classList.remove("is-active");
+    premiumBannerEyebrow.textContent = "FUTURE SIGNAL PLUS";
+    premiumBannerTitle.textContent = "Unlimited signals, deeper forecasts, premium access.";
+    bannerUpgradeBtn.textContent = "Upgrade";
+    bannerUpgradeBtn.disabled = false;
+  }
+}
+
+function applyStatusPill(state) {
+  statusPill.classList.toggle("is-plus", state === "PLUS");
+
+  if (state === "PLUS") {
     statusPill.textContent = "PLUS";
-    scanStatus.textContent = "Future Signal Plus active • Unlimited signals";
-    upgradeBtn.classList.add("hidden");
+  } else {
+    statusPill.textContent = state;
   }
 }
 
@@ -145,16 +167,18 @@ function handleCheckoutReturn() {
   if (checkoutState === "success") {
     setPremiumUser(true);
     hideLimitModal();
+    updatePremiumBanner();
+
     resultTitle.textContent = "Future Signal Plus Active";
     forecastText.textContent =
       "Premium access is now unlocked on this device. You can run unlimited signals without the daily free limit.";
     opportunityText.textContent =
       "You now have uninterrupted access to deeper exploration, shareable cards, and ongoing usage.";
     riskText.textContent =
-      "This is a local premium unlock for this device/browser. We’ll add server verification next.";
+      "This is the fast premium unlock layer. Next we’ll add webhook verification for a stronger production-grade subscription check.";
     nextMoveText.textContent =
       "Run a new signal now and experience unlimited access.";
-    statusPill.textContent = "PLUS";
+    applyStatusPill("PLUS");
     scanStatus.textContent = "Future Signal Plus active • Unlimited signals";
     signalFill.style.width = "100%";
     cardPreviewWrap.classList.add("hidden");
@@ -255,7 +279,7 @@ function setIdleState() {
   opportunityText.textContent = "Hidden opportunity signals will appear here.";
   riskText.textContent = "Risk patterns will appear here.";
   nextMoveText.textContent = "Strategic next move will appear here.";
-  statusPill.textContent = isPremiumUser() ? "PLUS" : "IDLE";
+  applyStatusPill(isPremiumUser() ? "PLUS" : "IDLE");
   scanStatus.textContent = isPremiumUser()
     ? "Future Signal Plus active • Unlimited signals"
     : `${remainingUsage()} free signals remaining today`;
@@ -266,6 +290,7 @@ function setIdleState() {
   hideUpgradeButton();
   hideLimitModal();
   disableActionButtons(false);
+  updatePremiumBanner();
 }
 
 function enterThinkingState(question) {
@@ -281,7 +306,7 @@ function enterThinkingState(question) {
   opportunityText.textContent = "Mapping upside vectors and identifying momentum shifts...";
   riskText.textContent = "Testing failure patterns, blind spots, and instability zones...";
   nextMoveText.textContent = "Constructing the strongest immediate move from this signal...";
-  statusPill.textContent = "SCANNING";
+  applyStatusPill("SCANNING");
   signalFill.style.width = "16%";
 
   const phases = [
@@ -324,7 +349,7 @@ function showLimitMessage() {
     "Free usage resets tomorrow. This is the conversion point for power users.";
   nextMoveText.textContent =
     "Upgrade to Future Signal Plus to continue right now.";
-  statusPill.textContent = "LIMIT";
+  applyStatusPill("LIMIT");
   scanStatus.textContent = "Daily free usage reached.";
   signalFill.style.width = "100%";
   cardPreviewWrap.classList.add("hidden");
@@ -340,7 +365,7 @@ function showResetMessage() {
   opportunityText.textContent = "You can continue testing the free flow, history flow, and Stripe upgrade path.";
   riskText.textContent = "Remove this hidden reset shortcut before launch.";
   nextMoveText.textContent = "Run another signal to continue testing.";
-  statusPill.textContent = isPremiumUser() ? "PLUS" : "RESET";
+  applyStatusPill(isPremiumUser() ? "PLUS" : "RESET");
   scanStatus.textContent = isPremiumUser()
     ? "Future Signal Plus active • Unlimited signals"
     : `${remainingUsage()} free signals remaining today`;
@@ -351,6 +376,7 @@ function showResetMessage() {
   hideUpgradeButton();
   hideLimitModal();
   disableActionButtons(false);
+  updatePremiumBanner();
 }
 
 /* ---------------------------
@@ -380,8 +406,10 @@ function loadHistoryItem(index) {
   opportunityText.textContent = item.opportunity || "";
   riskText.textContent = item.risk || "";
   nextMoveText.textContent = item.nextMove || "";
-  statusPill.textContent = isPremiumUser() ? "PLUS" : "ACTIVE";
-  scanStatus.textContent = `Loaded from history • ${item.time || ""}`;
+  applyStatusPill(isPremiumUser() ? "PLUS" : "ACTIVE");
+  scanStatus.textContent = isPremiumUser()
+    ? "Future Signal Plus active • Unlimited signals"
+    : `Loaded from history • ${item.time || ""}`;
   signalFill.style.width = `${Math.max(18, Math.min(96, Number(item.strength) || 72))}%`;
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
@@ -467,7 +495,7 @@ async function runAnalysis() {
 
     const strength = Math.max(18, Math.min(96, Number(data.strength) || 72));
 
-    statusPill.textContent = isPremiumUser() ? "PLUS" : "ACTIVE";
+    applyStatusPill(isPremiumUser() ? "PLUS" : "ACTIVE");
     scanStatus.textContent = isPremiumUser()
       ? "Future Signal Plus active • Unlimited signals"
       : `${remainingUsage()} free signals remaining today`;
@@ -495,13 +523,14 @@ async function runAnalysis() {
     opportunityText.textContent = "Check connectivity and try again.";
     riskText.textContent = "Temporary system interruption.";
     nextMoveText.textContent = "Run the signal again in a moment.";
-    statusPill.textContent = "ERROR";
+    applyStatusPill("ERROR");
     scanStatus.textContent = "Engine connection failed.";
     signalFill.style.width = "12%";
   } finally {
     exitThinkingState();
     analyzeBtn.textContent = "Analyze Signal";
     isAnalyzing = false;
+    updatePremiumBanner();
   }
 }
 
@@ -515,6 +544,8 @@ async function startUpgradeCheckout() {
     upgradeBtn.disabled = true;
     modalUpgradeBtn.textContent = "Redirecting...";
     modalUpgradeBtn.disabled = true;
+    bannerUpgradeBtn.textContent = "Redirecting...";
+    bannerUpgradeBtn.disabled = true;
 
     const response = await fetch("/create-checkout-session", {
       method: "POST"
@@ -530,12 +561,14 @@ async function startUpgradeCheckout() {
   } catch {
     upgradeBtn.textContent = "Checkout Failed";
     modalUpgradeBtn.textContent = "Checkout Failed";
+    bannerUpgradeBtn.textContent = "Checkout Failed";
 
     setTimeout(() => {
       upgradeBtn.textContent = "Upgrade to Future Signal Plus";
       upgradeBtn.disabled = false;
       modalUpgradeBtn.textContent = "Upgrade to Future Signal Plus";
       modalUpgradeBtn.disabled = false;
+      updatePremiumBanner();
     }, 1600);
   }
 }
@@ -616,6 +649,12 @@ clearHistoryBtn.addEventListener("click", () => {
 
 upgradeBtn.addEventListener("click", startUpgradeCheckout);
 modalUpgradeBtn.addEventListener("click", startUpgradeCheckout);
+bannerUpgradeBtn.addEventListener("click", () => {
+  if (!isPremiumUser()) {
+    startUpgradeCheckout();
+  }
+});
+
 closeModalBtn.addEventListener("click", hideLimitModal);
 
 limitModal.addEventListener("click", (event) => {
@@ -759,10 +798,10 @@ function generateSignalCard() {
   ctx.fillText("FUTURE SIGNAL", 128, 132);
 
   const activeLabel = isPremiumUser() ? "PLUS" : "ACTIVE";
-  fillRoundRect(ctx, 930, 92, 170, 64, 32, "rgba(48,242,163,0.14)");
-  strokeRoundRect(ctx, 930, 92, 170, 64, 32, "rgba(48,242,163,0.34)", 2);
+  fillRoundRect(ctx, 930, 92, 170, 64, 32, isPremiumUser() ? "rgba(255,215,106,0.14)" : "rgba(48,242,163,0.14)");
+  strokeRoundRect(ctx, 930, 92, 170, 64, 32, isPremiumUser() ? "rgba(255,215,106,0.34)" : "rgba(48,242,163,0.34)", 2);
 
-  ctx.fillStyle = "#b8ffe0";
+  ctx.fillStyle = isPremiumUser() ? "#ffe7a1" : "#b8ffe0";
   ctx.font = "800 26px Inter, Arial, sans-serif";
   ctx.fillText(activeLabel, isPremiumUser() ? 989 : 978, 132);
 
@@ -876,4 +915,4 @@ handleCheckoutReturn();
 renderHistory();
 renderRandomChips();
 setIdleState();
-updatePremiumUI();
+updatePremiumBanner();
