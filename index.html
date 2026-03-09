@@ -35,11 +35,11 @@
         <span id="rotatingPrompt">What happens if I start a business this year?</span>
       </div>
 
-      <div class="chip-row">
-        <button class="chip" data-prompt="What happens if I build a digital brand in the next 6 months?">Digital Brand</button>
-        <button class="chip" data-prompt="What if I reinvent my life in the next 90 days?">Reinvent Life</button>
-        <button class="chip" data-prompt="What happens if I turn one strong idea into a product this month?">Launch Product</button>
-        <button class="chip" data-prompt="What if AI transforms my industry faster than expected?">AI Shift</button>
+      <div class="chip-row" id="chipRow">
+        <button class="chip" data-prompt="">Loading...</button>
+        <button class="chip" data-prompt="">Loading...</button>
+        <button class="chip" data-prompt="">Loading...</button>
+        <button class="chip" data-prompt="">Loading...</button>
       </div>
 
       <div class="input-wrap">
@@ -150,6 +150,20 @@
     <span>Future Signal</span>
     <span>Futuristic scenario engine</span>
   </footer>
+
+  <div id="limitModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="result-label">FREE LIMIT REACHED</div>
+      <h2>Daily Signal Limit Reached</h2>
+      <p>
+        You’ve used all free signals for today. Upgrade to Future Signal Plus for unlimited signals, deeper forecasting, and uninterrupted access.
+      </p>
+      <div class="modal-actions">
+        <button id="modalUpgradeBtn" class="main-btn">Upgrade to Future Signal Plus</button>
+        <button id="closeModalBtn" class="ghost-btn">Maybe later</button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
