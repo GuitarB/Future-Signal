@@ -182,13 +182,18 @@ h1 span {
   align-items: center;
 }
 
+.chip-toolbar {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .chip-row {
   display: flex;
   gap: 10px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 6px;
-  margin-bottom: 16px;
 }
 
 .chip-row::-webkit-scrollbar {
@@ -526,5 +531,10 @@ button:active,
 
   .result-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .chip-toolbar {
+    grid-template-columns: 1fr auto;
+    align-items: center;
   }
 }
