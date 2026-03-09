@@ -39,26 +39,86 @@ const prompts = [
 ];
 
 const chipPromptPool = [
-  "What happens if I build a digital brand in the next 6 months?",
-  "What if I reinvent my life in the next 90 days?",
-  "What happens if I turn one strong idea into a product this month?",
-  "What if AI transforms my industry faster than expected?",
-  "What happens if I focus on one business for a full year?",
-  "What if I launch before I feel fully ready?",
-  "What happens if I build something people share naturally?",
-  "What if I switch careers this year?",
-  "What happens if I become consistent for 100 days straight?",
-  "What if I move to a new city and start over?",
-  "What happens if I turn my expertise into a subscription?",
-  "What if I go all in on one niche?",
-  "What happens if I build an audience before the product?",
-  "What if I start creating content every day?",
-  "What happens if I use AI to redesign my workflow?",
-  "What if I stop overthinking and ship this week?",
-  "What happens if I build an app people talk about?",
-  "What if I create a premium offer around one skill?",
-  "What happens if I commit to a personal brand for a year?",
-  "What if I start over and design a better life?"
+  {
+    label: "Digital Brand",
+    prompt: "What happens if I build a digital brand in the next 6 months?"
+  },
+  {
+    label: "Reinvent Life",
+    prompt: "What if I reinvent my life in the next 90 days?"
+  },
+  {
+    label: "Launch Idea",
+    prompt: "What happens if I turn one strong idea into a product this month?"
+  },
+  {
+    label: "AI Shift",
+    prompt: "What if AI transforms my industry faster than expected?"
+  },
+  {
+    label: "Go All In",
+    prompt: "What happens if I focus on one business for a full year?"
+  },
+  {
+    label: "Launch Early",
+    prompt: "What if I launch before I feel fully ready?"
+  },
+  {
+    label: "Share Loop",
+    prompt: "What happens if I build something people share naturally?"
+  },
+  {
+    label: "Career Shift",
+    prompt: "What if I switch careers this year?"
+  },
+  {
+    label: "100 Days",
+    prompt: "What happens if I become consistent for 100 days straight?"
+  },
+  {
+    label: "New City",
+    prompt: "What if I move to a new city and start over?"
+  },
+  {
+    label: "Subscription",
+    prompt: "What happens if I turn my expertise into a subscription?"
+  },
+  {
+    label: "Own Niche",
+    prompt: "What if I go all in on one niche?"
+  },
+  {
+    label: "Audience First",
+    prompt: "What happens if I build an audience before the product?"
+  },
+  {
+    label: "Daily Content",
+    prompt: "What if I start creating content every day?"
+  },
+  {
+    label: "AI Workflow",
+    prompt: "What happens if I use AI to redesign my workflow?"
+  },
+  {
+    label: "Ship Now",
+    prompt: "What if I stop overthinking and ship this week?"
+  },
+  {
+    label: "Viral App",
+    prompt: "What happens if I build an app people talk about?"
+  },
+  {
+    label: "Premium Offer",
+    prompt: "What if I create a premium offer around one skill?"
+  },
+  {
+    label: "Personal Brand",
+    prompt: "What happens if I commit to a personal brand for a year?"
+  },
+  {
+    label: "Start Over",
+    prompt: "What if I start over and design a better life?"
+  }
 ];
 
 let promptIndex = 0;
@@ -89,29 +149,14 @@ function shuffle(array) {
   return copy;
 }
 
-function chipLabelFromPrompt(prompt) {
-  let text = prompt
-    .replace(/^What happens if I /i, "")
-    .replace(/^What if I /i, "")
-    .replace(/^What happens if /i, "")
-    .replace(/^What if /i, "")
-    .replace(/\?$/, "")
-    .trim();
-
-  const words = text.split(" ").slice(0, 3);
-  return words
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
-}
-
 function renderRandomChips() {
   const chosen = shuffle(chipPromptPool).slice(0, 4);
 
   chipRow.innerHTML = chosen
     .map(
-      (prompt) => `
-        <button class="chip" data-prompt="${escapeHtml(prompt)}">
-          ${escapeHtml(chipLabelFromPrompt(prompt))}
+      (item) => `
+        <button class="chip" data-prompt="${escapeHtml(item.prompt)}">
+          ${escapeHtml(item.label)}
         </button>
       `
     )
@@ -423,7 +468,7 @@ async function runAnalysis() {
     if (isLimitReached()) {
       scanStatus.textContent = "0 free signals remaining today";
     }
-  } catch (error) {
+  } catch {
     resultTitle.textContent = "Transmission Error";
     forecastText.textContent = "The signal engine could not complete this readout.";
     opportunityText.textContent = "Check connectivity and try again.";
