@@ -8,6 +8,7 @@ const copyBtn = document.getElementById("copyBtn");
 const cardBtn = document.getElementById("cardBtn");
 const shareCardBtn = document.getElementById("shareCardBtn");
 const downloadCardBtn = document.getElementById("downloadCardBtn");
+const upgradeBtn = document.getElementById("upgradeBtn");
 const cardPreviewWrap = document.getElementById("cardPreviewWrap");
 const signalCardCanvas = document.getElementById("signalCardCanvas");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
@@ -98,6 +99,14 @@ function isLimitReached() {
   return usage.count >= DAILY_LIMIT;
 }
 
+function hideUpgradeButton() {
+  upgradeBtn.classList.add("hidden");
+}
+
+function showUpgradeButton() {
+  upgradeBtn.classList.remove("hidden");
+}
+
 function setIdleState() {
   resultTitle.textContent = "Awaiting transmission...";
   forecastText.textContent = "Enter a question to generate a speculative future readout.";
@@ -109,23 +118,25 @@ function setIdleState() {
   signalFill.style.width = "8%";
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
+  hideUpgradeButton();
 }
 
 function showLimitMessage() {
   resultTitle.textContent = "Daily Signal Limit Reached";
   forecastText.textContent =
-    "You have used all free signals for today. Future Signal Plus will unlock unlimited signals and deeper forecasting.";
+    "You have used all free signals for today. Future Signal Plus unlocks unlimited daily signals and uninterrupted access.";
   opportunityText.textContent =
-    "Your upgrade path is clear: keep the product open for discovery, then convert power users when they want more.";
+    "Upgrade now to continue exploring scenarios, generating signal cards, and using Future Signal without waiting for tomorrow.";
   riskText.textContent =
-    "Without limits, viral usage can burn API budget quickly. This gate protects the product while creating monetization pressure.";
+    "Free usage resets the next day. Power users will hit this wall quickly, which is exactly where premium conversion should happen.";
   nextMoveText.textContent =
-    "Wait for tomorrow’s reset or upgrade to Future Signal Plus when Stripe is live.";
+    "Upgrade to Future Signal Plus to continue right now.";
   statusPill.textContent = "LIMIT";
   scanStatus.textContent = "Daily free usage reached.";
   signalFill.style.width = "100%";
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
+  showUpgradeButton();
 }
 
 function showResetMessage() {
@@ -133,9 +144,9 @@ function showResetMessage() {
   forecastText.textContent =
     "Daily test usage has been reset on this device.";
   opportunityText.textContent =
-    "You can continue testing the free flow, share card flow, and upgrade wall.";
+    "You can continue testing the free flow, limit wall, and Stripe upgrade path.";
   riskText.textContent =
-    "Remember to remove this hidden reset shortcut before launch.";
+    "Remove this hidden reset shortcut before launch.";
   nextMoveText.textContent =
     "Run another signal to continue testing.";
   statusPill.textContent = "RESET";
@@ -143,6 +154,7 @@ function showResetMessage() {
   signalFill.style.width = "18%";
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
+  hideUpgradeButton();
 }
 
 function storeHistory(item) {
@@ -199,6 +211,7 @@ async function runAnalysis() {
   isAnalyzing = true;
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
+  hideUpgradeButton();
 
   analyzeBtn.textContent = "Analyzing...";
   statusPill.textContent = "SCANNING";
@@ -240,12 +253,41 @@ async function runAnalysis() {
       strength,
       time: new Date().toLocaleString()
     });
+
+    if (isLimitReached()) {
+      scanStatus.textContent = "0 free signals remaining today";
+    }
   } catch (error) {
     statusPill.textContent = "ERROR";
     scanStatus.textContent = "Engine connection failed.";
   } finally {
     analyzeBtn.textContent = "Analyze Signal";
     isAnalyzing = false;
+  }
+}
+
+async function startUpgradeCheckout() {
+  try {
+    upgradeBtn.textContent = "Redirecting...";
+    upgradeBtn.disabled = true;
+
+    const response = await fetch("/create-checkout-session", {
+      method: "POST"
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.url) {
+      throw new Error(data.error || "Failed to create checkout session.");
+    }
+
+    window.location.href = data.url;
+  } catch (error) {
+    upgradeBtn.textContent = "Checkout Failed";
+    setTimeout(() => {
+      upgradeBtn.textContent = "Upgrade to Future Signal Plus";
+      upgradeBtn.disabled = false;
+    }, 1600);
   }
 }
 
@@ -311,6 +353,8 @@ clearHistoryBtn.addEventListener("click", () => {
   localStorage.removeItem("futureSignalHistory");
   renderHistory();
 });
+
+upgradeBtn.addEventListener("click", startUpgradeCheckout);
 
 function roundRect(ctx, x, y, width, height, radius) {
   ctx.beginPath();
