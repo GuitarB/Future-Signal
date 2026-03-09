@@ -2,159 +2,220 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
   <title>Future Signal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <meta
+    name="description"
+    content="Explore possible outcomes, hidden opportunities, risk patterns, and strategic next moves through a cinematic signal interface."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="bg-orb orb-1"></div>
-  <div class="bg-orb orb-2"></div>
-  <div class="bg-orb orb-3"></div>
-  <div class="grid-overlay"></div>
+  <div class="page-grid"></div>
+  <div class="page-glow page-glow-a"></div>
+  <div class="page-glow page-glow-b"></div>
 
-  <main class="app-shell">
-    <section class="hero-card">
-      <div class="top-row">
-        <div class="top-badge">FUTURE SIGNAL / V2</div>
-        <div class="live-dot-wrap">
-          <span class="live-dot"></span>
+  <main class="shell">
+    <section class="panel hero-panel">
+      <div class="hero-topline">
+        <div class="badge-pill">FUTURE SIGNAL / V2</div>
+        <div class="engine-status">
+          <span class="engine-dot"></span>
           <span>LIVE ENGINE</span>
         </div>
       </div>
 
-      <h1>Ask the future<br><span>something bold.</span></h1>
+      <h1 class="hero-title">
+        Ask the future
+        <span>something bold.</span>
+      </h1>
 
-      <p class="hero-text">
-        Explore possible outcomes, hidden opportunities, risk patterns, and strategic next moves through a cinematic signal interface.
+      <p class="hero-copy">
+        Explore possible outcomes, hidden opportunities, risk patterns, and
+        strategic next moves through a cinematic signal interface.
       </p>
 
-      <div id="premiumBanner" class="premium-banner">
-        <div class="premium-banner-copy">
-          <div id="premiumBannerEyebrow" class="premium-banner-eyebrow">FUTURE SIGNAL PLUS</div>
-          <div id="premiumBannerTitle" class="premium-banner-title">
-            Unlimited signals, deeper forecasts, premium access.
-          </div>
-        </div>
-        <button id="bannerUpgradeBtn" class="premium-banner-btn">Upgrade</button>
+      <div class="rotating-prompt" id="rotatingPrompt">
+        What happens if I start a business this year?
       </div>
 
-      <div class="prompt-bar">
-        <span id="rotatingPrompt">What happens if I start a business this year?</span>
-      </div>
+      <div class="chip-grid" id="chipRow"></div>
 
-      <div class="chip-toolbar">
-        <div class="chip-row" id="chipRow">
-          <button class="chip" data-prompt="">Loading...</button>
-          <button class="chip" data-prompt="">Loading...</button>
-          <button class="chip" data-prompt="">Loading...</button>
-          <button class="chip" data-prompt="">Loading...</button>
-        </div>
-        <button id="refreshChipsBtn" class="ghost-btn small-btn">Refresh Chips</button>
-      </div>
+      <button class="secondary-button chip-refresh-button" id="refreshChipsBtn" type="button">
+        Refresh Chips
+      </button>
 
-      <div class="input-wrap">
-        <textarea
-          id="questionInput"
-          placeholder="Type your question here... Example: What happens if I go all in on one idea for the next 6 months?"
-        ></textarea>
+      <textarea
+        id="questionInput"
+        class="question-input"
+        placeholder="Type your question here... Example: What happens if I go all in on one idea for the next 6 months?"
+      ></textarea>
 
-        <div class="button-row">
-          <button id="analyzeBtn" class="main-btn">Analyze Signal</button>
-          <button id="clearBtn" class="ghost-btn">Clear</button>
-        </div>
-      </div>
+      <button id="analyzeBtn" class="primary-button" type="button">
+        Analyze Signal
+      </button>
+
+      <button id="clearBtn" class="secondary-button clear-button" type="button">
+        Clear
+      </button>
     </section>
 
-    <section class="result-card" id="resultCard">
+    <section class="panel premium-banner" id="premiumBanner">
+      <div class="premium-banner-copy">
+        <div class="premium-banner-eyebrow" id="premiumBannerEyebrow">
+          FUTURE SIGNAL PLUS
+        </div>
+        <h3 class="premium-banner-title" id="premiumBannerTitle">
+          Unlimited signals, deeper forecasts, premium access.
+        </h3>
+      </div>
+      <button id="bannerUpgradeBtn" class="banner-upgrade-button" type="button">
+        Upgrade
+      </button>
+    </section>
+
+    <section class="panel premium-access-panel">
+      <div class="section-label">PREMIUM ACCESS</div>
+      <h2 class="section-title">Unlock Plus on this device</h2>
+      <p class="section-copy">
+        Enter the email used for checkout to verify premium access and unlock
+        Future Signal Plus anywhere.
+      </p>
+
+      <div class="premium-access-form">
+        <input
+          id="premiumEmailInput"
+          class="premium-email-input"
+          type="email"
+          placeholder="Enter your checkout email"
+          autocomplete="email"
+          inputmode="email"
+        />
+        <button id="checkPremiumBtn" class="secondary-button premium-check-button" type="button">
+          Check Premium
+        </button>
+      </div>
+
+      <p class="premium-check-status" id="premiumCheckStatus">
+        No premium email verified on this device yet.
+      </p>
+    </section>
+
+    <section class="panel result-panel" id="resultCard">
       <div class="result-header">
         <div>
-          <div class="result-label">SIGNAL OUTPUT</div>
-          <h2 id="resultTitle">Awaiting transmission...</h2>
+          <div class="section-label">SIGNAL OUTPUT</div>
+          <h2 class="result-title" id="resultTitle">Awaiting transmission...</h2>
         </div>
         <div class="status-pill" id="statusPill">IDLE</div>
       </div>
 
-      <div class="scan-status" id="scanStatus">System standing by.</div>
+      <p class="scan-status" id="scanStatus">
+        3 free signals remaining today
+      </p>
 
       <div class="signal-meter">
-        <div class="signal-fill" id="signalFill"></div>
+        <div class="signal-meter-fill" id="signalFill"></div>
       </div>
 
-      <div class="action-row">
-        <button id="copyBtn" class="secondary-btn">Copy Result</button>
-        <button id="cardBtn" class="secondary-btn">Generate Signal Card</button>
-        <button id="upgradeBtn" class="main-btn hidden">Upgrade to Future Signal Plus</button>
+      <div class="result-actions">
+        <button id="copyBtn" class="secondary-button" type="button">
+          Copy Result
+        </button>
+        <button id="cardBtn" class="secondary-button" type="button">
+          Generate Signal Card
+        </button>
+        <button id="shareCardBtn" class="secondary-button" type="button">
+          Share Card
+        </button>
+        <a
+          id="downloadCardBtn"
+          class="secondary-button download-link"
+          download="future-signal-card.png"
+        >
+          Download Card
+        </a>
       </div>
 
-      <div class="result-grid">
-        <article class="panel">
-          <h3>Primary Forecast</h3>
-          <p id="forecastText">
-            Enter a question to generate a speculative future readout.
-          </p>
-        </article>
+      <button id="upgradeBtn" class="primary-button upgrade-button hidden" type="button">
+        Upgrade to Future Signal Plus
+      </button>
 
-        <article class="panel">
-          <h3>Opportunity Zone</h3>
-          <p id="opportunityText">
-            Hidden opportunities, leverage points, and momentum signals will appear here.
-          </p>
-        </article>
-
-        <article class="panel">
-          <h3>Risk Pattern</h3>
-          <p id="riskText">
-            Friction, instability, and caution signals will appear here.
-          </p>
-        </article>
-
-        <article class="panel">
-          <h3>Next Move</h3>
-          <p id="nextMoveText">
-            Your most strategic immediate move will appear here.
-          </p>
-        </article>
+      <div class="result-block">
+        <h3>Primary Forecast</h3>
+        <p id="forecastText">
+          Enter a question to generate a speculative future readout.
+        </p>
       </div>
 
-      <div id="cardPreviewWrap" class="card-preview-wrap hidden">
-        <div class="result-label">SHAREABLE SIGNAL CARD</div>
-        <canvas id="signalCardCanvas" width="1200" height="1500"></canvas>
+      <div class="result-block">
+        <h3>Opportunity Zone</h3>
+        <p id="opportunityText">
+          Hidden opportunity signals will appear here.
+        </p>
+      </div>
 
-        <div class="card-preview-actions">
-          <button id="shareCardBtn" class="secondary-btn">Share Card</button>
-          <a id="downloadCardBtn" class="secondary-btn download-btn" download="future-signal-card.png">Download Card</a>
-        </div>
+      <div class="result-block">
+        <h3>Risk Pattern</h3>
+        <p id="riskText">
+          Risk patterns will appear here.
+        </p>
+      </div>
+
+      <div class="result-block">
+        <h3>Next Move</h3>
+        <p id="nextMoveText">
+          Strategic next move will appear here.
+        </p>
+      </div>
+
+      <div class="share-card-preview hidden" id="cardPreviewWrap">
+        <div class="section-label">SHAREABLE SIGNAL CARD</div>
+        <canvas id="signalCardCanvas" width="1200" height="1600"></canvas>
       </div>
     </section>
 
-    <section class="history-card">
+    <section class="panel history-panel">
       <div class="history-header">
         <div>
-          <div class="result-label">SIGNAL HISTORY</div>
-          <h2>Recent transmissions</h2>
+          <div class="section-label">SIGNAL HISTORY</div>
+          <h2 class="section-title">Recent transmissions</h2>
         </div>
-        <button id="clearHistoryBtn" class="ghost-btn small-btn">Clear History</button>
+        <button id="clearHistoryBtn" class="secondary-button history-clear-button" type="button">
+          Clear History
+        </button>
       </div>
 
       <div id="historyList" class="history-list">
-        <div class="history-empty">No saved signals yet. Run an analysis to start building your timeline.</div>
+        <div class="history-empty">
+          No saved signals yet. Run an analysis to start building your timeline.
+        </div>
       </div>
     </section>
 
-    <section class="premium-card">
-      <div class="premium-label">NEXT PHASE</div>
-      <h2>Future Signal Plus</h2>
-      <p>
-        Premium signals include unlimited daily usage, deeper scenario breakdowns, downloadable reports, custom strategy paths, and AI-powered future sessions.
+    <section class="panel plus-panel">
+      <div class="section-label">NEXT PHASE</div>
+      <h2 class="section-title">Future Signal Plus</h2>
+      <p class="section-copy">
+        Premium signals include unlimited daily usage, deeper scenario
+        breakdowns, downloadable reports, custom strategy paths, and AI-powered
+        future sessions.
       </p>
-      <div class="premium-grid">
-        <div class="premium-item">Unlimited signals</div>
-        <div class="premium-item">Deeper forecasts</div>
-        <div class="premium-item">Priority access</div>
-        <div class="premium-item">Shareable signal cards</div>
+
+      <div class="plus-grid">
+        <div class="plus-card">Unlimited signals</div>
+        <div class="plus-card">Deeper forecasts</div>
+        <div class="plus-card">Priority access</div>
+        <div class="plus-card">Shareable signal cards</div>
       </div>
     </section>
   </main>
@@ -164,17 +225,20 @@
     <span>Futuristic scenario engine</span>
   </footer>
 
-  <div id="limitModal" class="modal-overlay hidden">
+  <div class="modal-overlay hidden" id="limitModal">
     <div class="modal-card">
-      <div class="result-label">FREE LIMIT REACHED</div>
-      <h2>Daily Signal Limit Reached</h2>
+      <div class="section-label">FREE LIMIT REACHED</div>
+      <h3>Daily Signal Limit Reached</h3>
       <p>
-        You’ve used all free signals for today. Upgrade to Future Signal Plus for unlimited signals, deeper forecasting, and uninterrupted access.
+        You’ve used all free signals for today. Upgrade to Future Signal Plus
+        for unlimited signals, deeper forecasting, and uninterrupted access.
       </p>
-      <div class="modal-actions">
-        <button id="modalUpgradeBtn" class="main-btn">Upgrade to Future Signal Plus</button>
-        <button id="closeModalBtn" class="ghost-btn">Maybe later</button>
-      </div>
+      <button id="modalUpgradeBtn" class="primary-button" type="button">
+        Upgrade to Future Signal Plus
+      </button>
+      <button id="closeModalBtn" class="secondary-button" type="button">
+        Maybe later
+      </button>
     </div>
   </div>
 
