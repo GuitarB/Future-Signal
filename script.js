@@ -39,86 +39,26 @@ const prompts = [
 ];
 
 const chipPromptPool = [
-  {
-    label: "Digital Brand",
-    prompt: "What happens if I build a digital brand in the next 6 months?"
-  },
-  {
-    label: "Reinvent Life",
-    prompt: "What if I reinvent my life in the next 90 days?"
-  },
-  {
-    label: "Launch Idea",
-    prompt: "What happens if I turn one strong idea into a product this month?"
-  },
-  {
-    label: "AI Shift",
-    prompt: "What if AI transforms my industry faster than expected?"
-  },
-  {
-    label: "Go All In",
-    prompt: "What happens if I focus on one business for a full year?"
-  },
-  {
-    label: "Launch Early",
-    prompt: "What if I launch before I feel fully ready?"
-  },
-  {
-    label: "Share Loop",
-    prompt: "What happens if I build something people share naturally?"
-  },
-  {
-    label: "Career Shift",
-    prompt: "What if I switch careers this year?"
-  },
-  {
-    label: "100 Days",
-    prompt: "What happens if I become consistent for 100 days straight?"
-  },
-  {
-    label: "New City",
-    prompt: "What if I move to a new city and start over?"
-  },
-  {
-    label: "Subscription",
-    prompt: "What happens if I turn my expertise into a subscription?"
-  },
-  {
-    label: "Own Niche",
-    prompt: "What if I go all in on one niche?"
-  },
-  {
-    label: "Audience First",
-    prompt: "What happens if I build an audience before the product?"
-  },
-  {
-    label: "Daily Content",
-    prompt: "What if I start creating content every day?"
-  },
-  {
-    label: "AI Workflow",
-    prompt: "What happens if I use AI to redesign my workflow?"
-  },
-  {
-    label: "Ship Now",
-    prompt: "What if I stop overthinking and ship this week?"
-  },
-  {
-    label: "Viral App",
-    prompt: "What happens if I build an app people talk about?"
-  },
-  {
-    label: "Premium Offer",
-    prompt: "What if I create a premium offer around one skill?"
-  },
-  {
-    label: "Personal Brand",
-    prompt: "What happens if I commit to a personal brand for a year?"
-  },
-  {
-    label: "Start Over",
-    prompt: "What if I start over and design a better life?"
-  }
+  { label: "Digital Brand", prompt: "What happens if I build a digital brand in the next 6 months?" },
+  { label: "Reinvent Life", prompt: "What if I reinvent my life in the next 90 days?" },
+  { label: "Launch Idea", prompt: "What happens if I turn one strong idea into a product this month?" },
+  { label: "AI Shift", prompt: "What if AI transforms my industry faster than expected?" },
+  { label: "Go All In", prompt: "What happens if I focus on one business for a full year?" },
+  { label: "Launch Early", prompt: "What if I launch before I feel fully ready?" },
+  { label: "Share Loop", prompt: "What happens if I build something people share naturally?" },
+  { label: "Career Shift", prompt: "What if I switch careers this year?" },
+  { label: "100 Days", prompt: "What happens if I become consistent for 100 days straight?" },
+  { label: "New City", prompt: "What if I move to a new city and start over?" },
+  { label: "Subscription", prompt: "What happens if I turn my expertise into a subscription?" },
+  { label: "Own Niche", prompt: "What if I go all in on one niche?" },
+  { label: "Audience First", prompt: "What happens if I build an audience before the product?" },
+  { label: "Daily Content", prompt: "What if I start creating content every day?" },
+  { label: "AI Workflow", prompt: "What happens if I use AI to redesign my workflow?" },
+  { label: "Ship Now", prompt: "What if I stop overthinking and ship this week?" },
+  { label: "Viral App", prompt: "What happens if I build an app people talk about?" },
+  { label: "Premium Offer", prompt: "What if I create a premium offer around one skill?" },
+  { label: "Personal Brand", prompt: "What happens if I commit to a personal brand for a year?" },
+  { label: "Start Over", prompt: "What if I start over and design a better life?" }
 ];
 
 let promptIndex = 0;
@@ -178,6 +118,65 @@ refreshChipsBtn.addEventListener("click", () => {
   }, 900);
 });
 
+/* ---------------------------
+PREMIUM STATE
+--------------------------- */
+
+function isPremiumUser() {
+  return localStorage.getItem("future_signal_premium") === "true";
+}
+
+function setPremiumUser(enabled = true) {
+  localStorage.setItem("future_signal_premium", enabled ? "true" : "false");
+}
+
+function updatePremiumUI() {
+  if (isPremiumUser()) {
+    statusPill.textContent = "PLUS";
+    scanStatus.textContent = "Future Signal Plus active • Unlimited signals";
+    upgradeBtn.classList.add("hidden");
+  }
+}
+
+function handleCheckoutReturn() {
+  const url = new URL(window.location.href);
+  const checkoutState = url.searchParams.get("checkout");
+
+  if (checkoutState === "success") {
+    setPremiumUser(true);
+    hideLimitModal();
+    resultTitle.textContent = "Future Signal Plus Active";
+    forecastText.textContent =
+      "Premium access is now unlocked on this device. You can run unlimited signals without the daily free limit.";
+    opportunityText.textContent =
+      "You now have uninterrupted access to deeper exploration, shareable cards, and ongoing usage.";
+    riskText.textContent =
+      "This is a local premium unlock for this device/browser. We’ll add server verification next.";
+    nextMoveText.textContent =
+      "Run a new signal now and experience unlimited access.";
+    statusPill.textContent = "PLUS";
+    scanStatus.textContent = "Future Signal Plus active • Unlimited signals";
+    signalFill.style.width = "100%";
+    cardPreviewWrap.classList.add("hidden");
+    downloadCardBtn.removeAttribute("href");
+  }
+
+  if (checkoutState === "cancel") {
+    scanStatus.textContent = isPremiumUser()
+      ? "Future Signal Plus active • Unlimited signals"
+      : `${remainingUsage()} free signals remaining today`;
+  }
+
+  if (checkoutState === "success" || checkoutState === "cancel") {
+    url.searchParams.delete("checkout");
+    window.history.replaceState({}, "", url.toString());
+  }
+}
+
+/* ---------------------------
+USAGE / LIMIT
+--------------------------- */
+
 function getTodayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
@@ -213,10 +212,12 @@ function incrementUsage() {
 }
 
 function remainingUsage() {
+  if (isPremiumUser()) return Infinity;
   return Math.max(0, DAILY_LIMIT - getUsage().count);
 }
 
 function isLimitReached() {
+  if (isPremiumUser()) return false;
   return getUsage().count >= DAILY_LIMIT;
 }
 
@@ -225,7 +226,9 @@ function hideUpgradeButton() {
 }
 
 function showUpgradeButton() {
-  upgradeBtn.classList.remove("hidden");
+  if (!isPremiumUser()) {
+    upgradeBtn.classList.remove("hidden");
+  }
 }
 
 function hideLimitModal() {
@@ -233,7 +236,9 @@ function hideLimitModal() {
 }
 
 function showLimitModal() {
-  limitModal.classList.remove("hidden");
+  if (!isPremiumUser()) {
+    limitModal.classList.remove("hidden");
+  }
 }
 
 function disableActionButtons(disabled) {
@@ -250,9 +255,11 @@ function setIdleState() {
   opportunityText.textContent = "Hidden opportunity signals will appear here.";
   riskText.textContent = "Risk patterns will appear here.";
   nextMoveText.textContent = "Strategic next move will appear here.";
-  statusPill.textContent = "IDLE";
-  scanStatus.textContent = `${remainingUsage()} free signals remaining today`;
-  signalFill.style.width = "8%";
+  statusPill.textContent = isPremiumUser() ? "PLUS" : "IDLE";
+  scanStatus.textContent = isPremiumUser()
+    ? "Future Signal Plus active • Unlimited signals"
+    : `${remainingUsage()} free signals remaining today`;
+  signalFill.style.width = isPremiumUser() ? "100%" : "8%";
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
   resultCard.classList.remove("thinking");
@@ -333,9 +340,11 @@ function showResetMessage() {
   opportunityText.textContent = "You can continue testing the free flow, history flow, and Stripe upgrade path.";
   riskText.textContent = "Remove this hidden reset shortcut before launch.";
   nextMoveText.textContent = "Run another signal to continue testing.";
-  statusPill.textContent = "RESET";
-  scanStatus.textContent = `${remainingUsage()} free signals remaining today`;
-  signalFill.style.width = "18%";
+  statusPill.textContent = isPremiumUser() ? "PLUS" : "RESET";
+  scanStatus.textContent = isPremiumUser()
+    ? "Future Signal Plus active • Unlimited signals"
+    : `${remainingUsage()} free signals remaining today`;
+  signalFill.style.width = isPremiumUser() ? "100%" : "18%";
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
   resultCard.classList.remove("thinking");
@@ -343,6 +352,10 @@ function showResetMessage() {
   hideLimitModal();
   disableActionButtons(false);
 }
+
+/* ---------------------------
+HISTORY
+--------------------------- */
 
 function getHistory() {
   return JSON.parse(localStorage.getItem("futureSignalHistory") || "[]");
@@ -367,7 +380,7 @@ function loadHistoryItem(index) {
   opportunityText.textContent = item.opportunity || "";
   riskText.textContent = item.risk || "";
   nextMoveText.textContent = item.nextMove || "";
-  statusPill.textContent = "ACTIVE";
+  statusPill.textContent = isPremiumUser() ? "PLUS" : "ACTIVE";
   scanStatus.textContent = `Loaded from history • ${item.time || ""}`;
   signalFill.style.width = `${Math.max(18, Math.min(96, Number(item.strength) || 72))}%`;
   cardPreviewWrap.classList.add("hidden");
@@ -410,6 +423,10 @@ function renderHistory() {
   });
 }
 
+/* ---------------------------
+ANALYSIS
+--------------------------- */
+
 async function runAnalysis() {
   if (isLimitReached()) {
     showLimitMessage();
@@ -438,7 +455,9 @@ async function runAnalysis() {
       throw new Error("AI request failed.");
     }
 
-    incrementUsage();
+    if (!isPremiumUser()) {
+      incrementUsage();
+    }
 
     resultTitle.textContent = data.title || "Signal Acquired";
     forecastText.textContent = data.forecast || "No forecast returned.";
@@ -448,8 +467,10 @@ async function runAnalysis() {
 
     const strength = Math.max(18, Math.min(96, Number(data.strength) || 72));
 
-    statusPill.textContent = "ACTIVE";
-    scanStatus.textContent = `${remainingUsage()} free signals remaining today`;
+    statusPill.textContent = isPremiumUser() ? "PLUS" : "ACTIVE";
+    scanStatus.textContent = isPremiumUser()
+      ? "Future Signal Plus active • Unlimited signals"
+      : `${remainingUsage()} free signals remaining today`;
     signalFill.style.width = `${strength}%`;
 
     storeHistory({
@@ -465,7 +486,7 @@ async function runAnalysis() {
 
     renderRandomChips();
 
-    if (isLimitReached()) {
+    if (!isPremiumUser() && isLimitReached()) {
       scanStatus.textContent = "0 free signals remaining today";
     }
   } catch {
@@ -483,6 +504,10 @@ async function runAnalysis() {
     isAnalyzing = false;
   }
 }
+
+/* ---------------------------
+CHECKOUT
+--------------------------- */
 
 async function startUpgradeCheckout() {
   try {
@@ -515,6 +540,10 @@ async function startUpgradeCheckout() {
   }
 }
 
+/* ---------------------------
+RESET SHORTCUT
+--------------------------- */
+
 function handleClearTapReset() {
   clearTapCount += 1;
 
@@ -534,6 +563,10 @@ function handleClearTapReset() {
 
   return false;
 }
+
+/* ---------------------------
+EVENTS
+--------------------------- */
 
 analyzeBtn.addEventListener("click", runAnalysis);
 
@@ -588,6 +621,10 @@ closeModalBtn.addEventListener("click", hideLimitModal);
 limitModal.addEventListener("click", (event) => {
   if (event.target === limitModal) hideLimitModal();
 });
+
+/* ---------------------------
+CARD RENDERING
+--------------------------- */
 
 function roundRect(ctx, x, y, width, height, radius) {
   ctx.beginPath();
@@ -695,7 +732,7 @@ function generateSignalCard() {
   const forecast = forecastText.textContent.trim();
   const strength = Math.max(18, Math.min(96, parseInt(signalFill.style.width, 10) || 72));
 
-  if (statusPill.textContent !== "ACTIVE") {
+  if (statusPill.textContent !== "ACTIVE" && statusPill.textContent !== "PLUS") {
     cardBtn.textContent = "Run Signal First";
     setTimeout(() => {
       cardBtn.textContent = "Generate Signal Card";
@@ -721,12 +758,13 @@ function generateSignalCard() {
   ctx.font = "700 28px Inter, Arial, sans-serif";
   ctx.fillText("FUTURE SIGNAL", 128, 132);
 
+  const activeLabel = isPremiumUser() ? "PLUS" : "ACTIVE";
   fillRoundRect(ctx, 930, 92, 170, 64, 32, "rgba(48,242,163,0.14)");
   strokeRoundRect(ctx, 930, 92, 170, 64, 32, "rgba(48,242,163,0.34)", 2);
 
   ctx.fillStyle = "#b8ffe0";
   ctx.font = "800 26px Inter, Arial, sans-serif";
-  ctx.fillText("ACTIVE", 978, 132);
+  ctx.fillText(activeLabel, isPremiumUser() ? 989 : 978, 132);
 
   ctx.fillStyle = "#f1f5ff";
   ctx.font = "800 74px Inter, Arial, sans-serif";
@@ -789,7 +827,7 @@ function generateSignalCard() {
 }
 
 async function shareSignalCard() {
-  if (statusPill.textContent !== "ACTIVE") {
+  if (statusPill.textContent !== "ACTIVE" && statusPill.textContent !== "PLUS") {
     shareCardBtn.textContent = "Run Signal First";
     setTimeout(() => {
       shareCardBtn.textContent = "Share Card";
@@ -834,6 +872,8 @@ async function shareSignalCard() {
 cardBtn.addEventListener("click", generateSignalCard);
 shareCardBtn.addEventListener("click", shareSignalCard);
 
+handleCheckoutReturn();
 renderHistory();
 renderRandomChips();
 setIdleState();
+updatePremiumUI();
