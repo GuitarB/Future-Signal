@@ -9,10 +9,13 @@ const cardBtn = document.getElementById("cardBtn");
 const shareCardBtn = document.getElementById("shareCardBtn");
 const downloadCardBtn = document.getElementById("downloadCardBtn");
 const upgradeBtn = document.getElementById("upgradeBtn");
+const modalUpgradeBtn = document.getElementById("modalUpgradeBtn");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const limitModal = document.getElementById("limitModal");
 const cardPreviewWrap = document.getElementById("cardPreviewWrap");
 const signalCardCanvas = document.getElementById("signalCardCanvas");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-const chipButtons = document.querySelectorAll(".chip");
+const chipRow = document.getElementById("chipRow");
 
 const resultTitle = document.getElementById("resultTitle");
 const forecastText = document.getElementById("forecastText");
@@ -33,22 +36,112 @@ const prompts = [
   "What kind of future am I creating right now?"
 ];
 
+const chipPromptPool = [
+  "What happens if I build a digital brand in the next 6 months?",
+  "What if I reinvent my life in the next 90 days?",
+  "What happens if I turn one strong idea into a product this month?",
+  "What if AI transforms my industry faster than expected?",
+  "What happens if I focus on one business for a full year?",
+  "What if I launch before I feel fully ready?",
+  "What happens if I build something people share naturally?",
+  "What if I switch careers this year?",
+  "What happens if I become consistent for 100 days straight?",
+  "What if I move to a new city and start over?",
+  "What happens if I turn my expertise into a subscription?",
+  "What if I go all in on one niche?",
+  "What happens if I build an audience before the product?",
+  "What if I start creating content every day?",
+  "What happens if I use AI to redesign my workflow?",
+  "What if I stop overthinking and ship this week?",
+  "What happens if I build an app people talk about?",
+  "What if I turn one skill into a premium offer?",
+  "What happens if I commit to a personal brand for a year?",
+  "What if I start a business with almost no budget?"
+];
+
 let promptIndex = 0;
 let isAnalyzing = false;
 let clearTapCount = 0;
 let clearTapTimer = null;
+let chipRotateInterval = null;
 
 setInterval(() => {
   promptIndex = (promptIndex + 1) % prompts.length;
   rotatingPrompt.textContent = prompts[promptIndex];
 }, 3000);
 
-chipButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    questionInput.value = button.dataset.prompt;
-    questionInput.focus();
+function shuffleArray(array) {
+  const clone = [...array];
+  for (let i = clone.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [clone[i], clone[j]] = [clone[j], clone[i]];
+  }
+  return clone;
+}
+
+function shortChipLabel(prompt) {
+  const map = [
+    ["digital brand", "Digital Brand"],
+    ["reinvent my life", "Reinvent Life"],
+    ["strong idea", "Launch Idea"],
+    ["ai transforms", "AI Shift"],
+    ["one business", "One Business"],
+    ["launch before", "Launch Early"],
+    ["share naturally", "Share Loop"],
+    ["switch careers", "Career Shift"],
+    ["100 days", "100 Days"],
+    ["new city", "New City"],
+    ["subscription", "Subscription"],
+    ["one niche", "Own Niche"],
+    ["audience before", "Audience First"],
+    ["content every day", "Daily Content"],
+    ["redesign my workflow", "AI Workflow"],
+    ["ship this week", "Ship Now"],
+    ["app people talk about", "Viral App"],
+    ["premium offer", "Premium Offer"],
+    ["personal brand", "Personal Brand"],
+    ["no budget", "No Budget"]
+  ];
+
+  const lower = prompt.toLowerCase();
+  for (const [needle, label] of map) {
+    if (lower.includes(needle)) return label;
+  }
+
+  return prompt.length > 22 ? `${prompt.slice(0, 22)}…` : prompt;
+}
+
+function renderRandomChips() {
+  const chosen = shuffleArray(chipPromptPool).slice(0, 4);
+
+  chipRow.innerHTML = chosen
+    .map(
+      (prompt) => `
+        <button class="chip" data-prompt="${escapeHtml(prompt)}">${escapeHtml(shortChipLabel(prompt))}</button>
+      `
+    )
+    .join("");
+
+  const chipButtons = chipRow.querySelectorAll(".chip");
+  chipButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      questionInput.value = button.dataset.prompt;
+      questionInput.focus();
+    });
   });
-});
+}
+
+function startChipRotation() {
+  renderRandomChips();
+
+  if (chipRotateInterval) {
+    clearInterval(chipRotateInterval);
+  }
+
+  chipRotateInterval = setInterval(() => {
+    renderRandomChips();
+  }, 8000);
+}
 
 function getTodayKey() {
   const d = new Date();
@@ -64,11 +157,9 @@ function getUsage() {
 
   try {
     const parsed = JSON.parse(raw);
-
     if (parsed.date !== getTodayKey()) {
       return { date: getTodayKey(), count: 0 };
     }
-
     return parsed;
   } catch {
     return { date: getTodayKey(), count: 0 };
@@ -107,6 +198,14 @@ function showUpgradeButton() {
   upgradeBtn.classList.remove("hidden");
 }
 
+function hideLimitModal() {
+  limitModal.classList.add("hidden");
+}
+
+function showLimitModal() {
+  limitModal.classList.remove("hidden");
+}
+
 function setIdleState() {
   resultTitle.textContent = "Awaiting transmission...";
   forecastText.textContent = "Enter a question to generate a speculative future readout.";
@@ -119,6 +218,7 @@ function setIdleState() {
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
   hideUpgradeButton();
+  hideLimitModal();
 }
 
 function showLimitMessage() {
@@ -137,24 +237,23 @@ function showLimitMessage() {
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
   showUpgradeButton();
+  showLimitModal();
 }
 
 function showResetMessage() {
   resultTitle.textContent = "Testing Limit Reset";
-  forecastText.textContent =
-    "Daily test usage has been reset on this device.";
+  forecastText.textContent = "Daily test usage has been reset on this device.";
   opportunityText.textContent =
     "You can continue testing the free flow, limit wall, and Stripe upgrade path.";
-  riskText.textContent =
-    "Remove this hidden reset shortcut before launch.";
-  nextMoveText.textContent =
-    "Run another signal to continue testing.";
+  riskText.textContent = "Remove this hidden reset shortcut before launch.";
+  nextMoveText.textContent = "Run another signal to continue testing.";
   statusPill.textContent = "RESET";
   scanStatus.textContent = `${remainingUsage()} free signals remaining today`;
   signalFill.style.width = "18%";
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
   hideUpgradeButton();
+  hideLimitModal();
 }
 
 function storeHistory(item) {
@@ -193,7 +292,8 @@ function escapeHtml(text) {
   return String(text)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 async function runAnalysis() {
@@ -212,6 +312,7 @@ async function runAnalysis() {
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
   hideUpgradeButton();
+  hideLimitModal();
 
   analyzeBtn.textContent = "Analyzing...";
   statusPill.textContent = "SCANNING";
@@ -270,6 +371,8 @@ async function startUpgradeCheckout() {
   try {
     upgradeBtn.textContent = "Redirecting...";
     upgradeBtn.disabled = true;
+    modalUpgradeBtn.textContent = "Redirecting...";
+    modalUpgradeBtn.disabled = true;
 
     const response = await fetch("/create-checkout-session", {
       method: "POST"
@@ -284,16 +387,18 @@ async function startUpgradeCheckout() {
     window.location.href = data.url;
   } catch (error) {
     upgradeBtn.textContent = "Checkout Failed";
+    modalUpgradeBtn.textContent = "Checkout Failed";
+
     setTimeout(() => {
       upgradeBtn.textContent = "Upgrade to Future Signal Plus";
       upgradeBtn.disabled = false;
+      modalUpgradeBtn.textContent = "Upgrade to Future Signal Plus";
+      modalUpgradeBtn.disabled = false;
     }, 1600);
   }
 }
 
-analyzeBtn.addEventListener("click", runAnalysis);
-
-clearBtn.addEventListener("click", () => {
+function handleClearTapReset() {
   clearTapCount += 1;
 
   if (clearTapTimer) {
@@ -309,6 +414,16 @@ clearBtn.addEventListener("click", () => {
     resetUsage();
     questionInput.value = "";
     showResetMessage();
+    return true;
+  }
+
+  return false;
+}
+
+analyzeBtn.addEventListener("click", runAnalysis);
+
+clearBtn.addEventListener("click", () => {
+  if (handleClearTapReset()) {
     return;
   }
 
@@ -355,6 +470,13 @@ clearHistoryBtn.addEventListener("click", () => {
 });
 
 upgradeBtn.addEventListener("click", startUpgradeCheckout);
+modalUpgradeBtn.addEventListener("click", startUpgradeCheckout);
+closeModalBtn.addEventListener("click", hideLimitModal);
+limitModal.addEventListener("click", (event) => {
+  if (event.target === limitModal) {
+    hideLimitModal();
+  }
+});
 
 function roundRect(ctx, x, y, width, height, radius) {
   ctx.beginPath();
@@ -606,4 +728,5 @@ cardBtn.addEventListener("click", generateSignalCard);
 shareCardBtn.addEventListener("click", shareSignalCard);
 
 renderHistory();
+startChipRotation();
 setIdleState();
