@@ -34,6 +34,8 @@ const prompts = [
 
 let promptIndex = 0;
 let isAnalyzing = false;
+let clearTapCount = 0;
+let clearTapTimer = null;
 
 setInterval(() => {
   promptIndex = (promptIndex + 1) % prompts.length;
@@ -74,6 +76,10 @@ function getUsage() {
 
 function saveUsage(data) {
   localStorage.setItem("fs_usage", JSON.stringify(data));
+}
+
+function resetUsage() {
+  saveUsage({ date: getTodayKey(), count: 0 });
 }
 
 function incrementUsage() {
@@ -118,6 +124,23 @@ function showLimitMessage() {
   statusPill.textContent = "LIMIT";
   scanStatus.textContent = "Daily free usage reached.";
   signalFill.style.width = "100%";
+  cardPreviewWrap.classList.add("hidden");
+  downloadCardBtn.removeAttribute("href");
+}
+
+function showResetMessage() {
+  resultTitle.textContent = "Testing Limit Reset";
+  forecastText.textContent =
+    "Daily test usage has been reset on this device.";
+  opportunityText.textContent =
+    "You can continue testing the free flow, share card flow, and upgrade wall.";
+  riskText.textContent =
+    "Remember to remove this hidden reset shortcut before launch.";
+  nextMoveText.textContent =
+    "Run another signal to continue testing.";
+  statusPill.textContent = "RESET";
+  scanStatus.textContent = `${remainingUsage()} free signals remaining today`;
+  signalFill.style.width = "18%";
   cardPreviewWrap.classList.add("hidden");
   downloadCardBtn.removeAttribute("href");
 }
@@ -229,6 +252,24 @@ async function runAnalysis() {
 analyzeBtn.addEventListener("click", runAnalysis);
 
 clearBtn.addEventListener("click", () => {
+  clearTapCount += 1;
+
+  if (clearTapTimer) {
+    clearTimeout(clearTapTimer);
+  }
+
+  clearTapTimer = setTimeout(() => {
+    clearTapCount = 0;
+  }, 1200);
+
+  if (clearTapCount >= 3) {
+    clearTapCount = 0;
+    resetUsage();
+    questionInput.value = "";
+    showResetMessage();
+    return;
+  }
+
   questionInput.value = "";
   setIdleState();
 });
@@ -462,7 +503,7 @@ function generateSignalCard() {
   ctx.fillText("future-signal.pages.dev", 92, height - 102);
 
   cardPreviewWrap.classList.remove("hidden");
-  downloadCardBtn.href = canvas.toDataURL("image/png");
+  downloadCardBtn.href = signalCardCanvas.toDataURL("image/png");
 
   cardBtn.textContent = "Card Ready";
   setTimeout(() => {
