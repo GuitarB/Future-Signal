@@ -23,6 +23,10 @@ const chipRow = document.getElementById("chipRow");
 const refreshChipsBtn = document.getElementById("refreshChipsBtn");
 const resultCard = document.getElementById("resultCard");
 
+const premiumEmailInput = document.getElementById("premiumEmailInput");
+const checkPremiumBtn = document.getElementById("checkPremiumBtn");
+const premiumCheckStatus = document.getElementById("premiumCheckStatus");
+
 const resultTitle = document.getElementById("resultTitle");
 const forecastText = document.getElementById("forecastText");
 const opportunityText = document.getElementById("opportunityText");
@@ -134,11 +138,25 @@ function setPremiumUser(enabled = true) {
   localStorage.setItem("future_signal_premium", enabled ? "true" : "false");
 }
 
+function getPremiumEmail() {
+  return localStorage.getItem("future_signal_premium_email") || "";
+}
+
+function setPremiumEmail(email) {
+  if (email) {
+    localStorage.setItem("future_signal_premium_email", email.trim().toLowerCase());
+  } else {
+    localStorage.removeItem("future_signal_premium_email");
+  }
+}
+
 function updatePremiumBanner() {
   if (isPremiumUser()) {
     premiumBanner.classList.add("is-active");
     premiumBannerEyebrow.textContent = "⭐ FUTURE SIGNAL PLUS ACTIVE";
-    premiumBannerTitle.textContent = "Unlimited signals unlocked on this device.";
+    premiumBannerTitle.textContent = getPremiumEmail()
+      ? `Premium verified for ${getPremiumEmail()}`
+      : "Unlimited signals unlocked on this device.";
     bannerUpgradeBtn.textContent = "Premium Active";
     bannerUpgradeBtn.disabled = true;
   } else {
@@ -147,6 +165,107 @@ function updatePremiumBanner() {
     premiumBannerTitle.textContent = "Unlimited signals, deeper forecasts, premium access.";
     bannerUpgradeBtn.textContent = "Upgrade";
     bannerUpgradeBtn.disabled = false;
+  }
+}
+
+function updatePremiumCheckStatus(message = "", tone = "") {
+  premiumCheckStatus.textContent = message;
+  premiumCheckStatus.classList.remove("is-success", "is-error", "is-loading");
+
+  if (tone) {
+    premiumCheckStatus.classList.add(tone);
+  }
+}
+
+function applyPremiumVerifiedState(email) {
+  setPremiumUser(true);
+  setPremiumEmail(email);
+  premiumEmailInput.value = email;
+  updatePremiumBanner();
+  updatePremiumCheckStatus(`Premium verified for ${email}`, "is-success");
+  setIdleState();
+}
+
+function clearPremiumVerifiedState() {
+  setPremiumUser(false);
+  setPremiumEmail("");
+  updatePremiumBanner();
+  updatePremiumCheckStatus("No premium email verified on this device yet.");
+  setIdleState();
+}
+
+async function checkPremiumAccess(email) {
+  const response = await fetch("/api/check-premium", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email })
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || "Premium verification failed.");
+  }
+
+  return data;
+}
+
+async function handlePremiumCheck() {
+  const email = premiumEmailInput.value.trim().toLowerCase();
+
+  if (!email) {
+    updatePremiumCheckStatus("Enter the email used during checkout.", "is-error");
+    premiumEmailInput.focus();
+    return;
+  }
+
+  checkPremiumBtn.disabled = true;
+  checkPremiumBtn.textContent = "Checking...";
+  updatePremiumCheckStatus("Checking premium status...", "is-loading");
+
+  try {
+    const data = await checkPremiumAccess(email);
+
+    if (data.premium) {
+      applyPremiumVerifiedState(email);
+
+      resultTitle.textContent = "Future Signal Plus Verified";
+      forecastText.textContent =
+        "Premium access is now verified from your Stripe subscription record. Future Signal Plus is unlocked on this device.";
+      opportunityText.textContent =
+        "You can now use unlimited signals and keep premium access synced to your verified checkout email.";
+      riskText.textContent =
+        "This device is now unlocked. Next we can add a smoother account-style sign-in flow if you want an even more polished member experience.";
+      nextMoveText.textContent =
+        "Run a premium signal now. You are fully unlocked.";
+      applyStatusPill("PLUS");
+      scanStatus.textContent = "Premium verified via Stripe subscription";
+      signalFill.style.width = "100%";
+    } else {
+      setPremiumUser(false);
+      updatePremiumBanner();
+      updatePremiumCheckStatus("No active premium subscription was found for that email.", "is-error");
+    }
+  } catch (error) {
+    updatePremiumCheckStatus(
+      error instanceof Error ? error.message : "Premium verification failed.",
+      "is-error"
+    );
+  } finally {
+    checkPremiumBtn.disabled = false;
+    checkPremiumBtn.textContent = "Check Premium";
+  }
+}
+
+function hydratePremiumEmail() {
+  const storedEmail = getPremiumEmail();
+  if (storedEmail) {
+    premiumEmailInput.value = storedEmail;
+    updatePremiumCheckStatus(`Premium verified for ${storedEmail}`, "is-success");
+  } else {
+    updatePremiumCheckStatus("No premium email verified on this device yet.");
   }
 }
 
@@ -165,24 +284,18 @@ function handleCheckoutReturn() {
   const checkoutState = url.searchParams.get("checkout");
 
   if (checkoutState === "success") {
-    setPremiumUser(true);
-    hideLimitModal();
-    updatePremiumBanner();
-
-    resultTitle.textContent = "Future Signal Plus Active";
+    resultTitle.textContent = "Checkout Complete";
     forecastText.textContent =
-      "Premium access is now unlocked on this device. You can run unlimited signals without the daily free limit.";
+      "Your Stripe checkout finished successfully. To permanently unlock premium on this device, verify the email used for checkout in the Premium Access panel.";
     opportunityText.textContent =
-      "You now have uninterrupted access to deeper exploration, shareable cards, and ongoing usage.";
+      "Once verified, premium will become device-independent and tied to your actual subscription record.";
     riskText.textContent =
-      "This is the fast premium unlock layer. Next we’ll add webhook verification for a stronger production-grade subscription check.";
+      "Until verification runs, premium may not reflect the true subscription state on this device.";
     nextMoveText.textContent =
-      "Run a new signal now and experience unlimited access.";
-    applyStatusPill("PLUS");
-    scanStatus.textContent = "Future Signal Plus active • Unlimited signals";
-    signalFill.style.width = "100%";
-    cardPreviewWrap.classList.add("hidden");
-    downloadCardBtn.removeAttribute("href");
+      "Enter your checkout email above and tap Check Premium.";
+    applyStatusPill("READY");
+    scanStatus.textContent = "Checkout complete • Verify premium email to unlock";
+    signalFill.style.width = "74%";
   }
 
   if (checkoutState === "cancel") {
@@ -661,6 +774,15 @@ limitModal.addEventListener("click", (event) => {
   if (event.target === limitModal) hideLimitModal();
 });
 
+checkPremiumBtn.addEventListener("click", handlePremiumCheck);
+
+premiumEmailInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    handlePremiumCheck();
+  }
+});
+
 /* ---------------------------
 CARD RENDERING
 --------------------------- */
@@ -914,5 +1036,6 @@ shareCardBtn.addEventListener("click", shareSignalCard);
 handleCheckoutReturn();
 renderHistory();
 renderRandomChips();
+hydratePremiumEmail();
 setIdleState();
 updatePremiumBanner();
